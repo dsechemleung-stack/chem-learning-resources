@@ -96,24 +96,38 @@
     gap: 10px;
   }
 
-  header .pdf-btn {
+  .hero-actions {
+    margin-top: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .pdf-btn {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #fff;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.3);
-    padding: 5px 14px;
+    color: #0b1220;
+    background: linear-gradient(135deg, #60A5FA, #A78BFA);
+    border: 1px solid rgba(15,23,42,0.14);
+    padding: 10px 16px;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: transform 0.15s, filter 0.15s, box-shadow 0.15s;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    box-shadow: 0 10px 20px rgba(99,102,241,0.18);
   }
-  header .pdf-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.7); }
+
+  .pdf-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+    box-shadow: 0 14px 28px rgba(99,102,241,0.24);
+  }
 
   /* ── HERO ── */
   .hero {
@@ -517,15 +531,17 @@
 <header>
   <span class="brand">Chemistry · Guiding Questions</span>
   <div class="header-actions">
-    <a class="pdf-btn" href="/HOT_Questions(Optional)_Ch.14-15.pdf" target="_blank" rel="noopener noreferrer">Open Questions PDF</a>
     <button class="expand-all" onclick="toggleAll()">Expand All</button>
   </div>
 </header>
 
 <div class="hero">
   <div class="hero-tag">Higher-order thinking</div>
-  <h1>Scaffolded Hints<br><em>for Exam Mastery</em></h1>
+  <h1>Hints for Higher-Order Thinking (HOT) Questions</h1>
   <p>Click any section to reveal guiding questions and a step-by-step scaffold. Work through the hints in order — try each one before reading the next.</p>
+  <div class="hero-actions">
+    <a class="pdf-btn" href="/HOT_Questions(Optional)_Ch.14-15.pdf" target="_blank" rel="noopener noreferrer">Download Questions PDF</a>
+  </div>
   <div class="hero-meta">
     <span class="meta-pill">Salt Preparation</span>
     <span class="meta-pill">Reacting Masses</span>
