@@ -1,0 +1,62 @@
+## Manual Guide: Adding a New Webpage to the Platform
+
+The platform now uses a **configuration-based system**. Simply add your page to the config file and the buttons will be automatically generated with topic filtering. The "Back to Index" button is also automatically injected by a shared script.
+
+### 1. Create or Place Your HTML File
+- Put your webpage file in the project root (e.g., `your-page.html`)
+- Ensure it has a proper HTML structure with `<!DOCTYPE html>`
+- Add this line at the very top of your `<body>` tag:
+  ```html
+  <script src="/common.js"></script>
+  ```
+  This automatically injects the "Back to Index" button with consistent styling.
+
+### 2. Add to Vite Build Configuration
+Edit [vite.config.js](cci:7://file:///Users/Hugo/Desktop/chemleungmcq-platform-gamified/f4-chem-learning-resources/vite.config.js:0:0-0:0) and add your page to the `input` object under `build.rollupOptions.input`:
+
+```javascript
+input: {
+  index: 'index.html',
+  'chemical-bonding': 'chemical-bonding.html',
+  'neutralization-exothermic': 'neutralization-exothermic.html',
+  'salt-page': 'salt-page.html',
+  'titration': 'titration.html',
+  'hotGuidingSaltPrepReactingMass': 'HOT_guiding_saltprep_reactingmass.html',
+  'your-page': 'your-page.html',  // ← Add this line
+},
+```
+
+### 3. Add Page to Configuration File
+Edit [src/pagesConfig.js](cci:7://file:///Users/Hugo/Desktop/chemleungmcq-platform-gamified/f4-chem-learning-resources/src/pagesConfig.js:0:0-0:0) and add your page entry to the `PAGES_CONFIG` array:
+
+```javascript
+{
+  file: 'your-page.html',
+  level: 'F4',  // 'F3' | 'F4' | 'F5'
+  title: 'Your Page Title',
+  subtitle: 'Brief description shown below title',
+  topic: 'your-topic',  // e.g., 'bonding', 'acids-bases', 'salts', 'titration', 'hot'
+},
+```
+
+If your topic is new, also add it to `TOPIC_LABELS`:
+
+```javascript
+export const TOPIC_LABELS = {
+  bonding: 'Bonding',
+  'acids-bases': 'Acids & Bases',
+  salts: 'Salts',
+  titration: 'Titration',
+  hot: 'HOT Questions',
+  'your-topic': 'Your Topic Label',  // ← Add this
+};
+```
+
+### Summary Checklist
+- [ ] HTML file in project root
+- [ ] `<script src="/common.js"></script>` added at top of `<body>`
+- [ ] Added to [vite.config.js](cci:7://file:///Users/Hugo/Desktop/chemleungmcq-platform-gamified/f4-chem-learning-resources/vite.config.js:0:0-0:0) input
+- [ ] Page entry added to [src/pagesConfig.js](cci:7://file:///Users/Hugo/Desktop/chemleungmcq-platform-gamified/f4-chem-learning-resources/src/pagesConfig.js:0:0-0:0)
+- [ ] Topic label added to `TOPIC_LABELS` (if new topic)
+- [ ] Test locally with `npm run dev`
+- [ ] Build and deploy with `npm run build` and `npx vercel --prod`.

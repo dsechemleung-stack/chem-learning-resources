@@ -1,10 +1,32 @@
 import React from 'react';
+import { PAGES_CONFIG, TOPIC_LABELS } from './pagesConfig';
 
 export default function App() {
   const [activeLevel, setActiveLevel] = React.useState('F4');
+  const [selectedTopic, setSelectedTopic] = React.useState('all');
+
+  // Get unique topics for the current level
+  const getTopicsForLevel = (level) => {
+    const topics = new Set(PAGES_CONFIG
+      .filter(p => p.level === level)
+      .map(p => p.topic)
+    );
+    return ['all', ...Array.from(topics)];
+  };
+
+  // Filter pages by level and topic
+  const getFilteredPages = () => {
+    return PAGES_CONFIG.filter(p => 
+      p.level === activeLevel && 
+      (selectedTopic === 'all' || p.topic === selectedTopic)
+    );
+  };
+
+  const currentTopics = getTopicsForLevel(activeLevel);
+  const filteredPages = getFilteredPages();
 
   return (
-    <div style={{ minHeight: '100vh', width: '100%', position: 'relative', overflow: 'hidden', background: '#0a1a18' }}>
+    <div style={{ minHeight: '100vh', width: '100%', position: 'relative', background: '#0a1a18' }}>
       <style>{`
         .brand-script {
           font-family: 'Quicksand', sans-serif;
@@ -53,16 +75,32 @@ export default function App() {
           background: rgba(118,168,165,0.14);
           border: 1.5px solid rgba(197,215,181,0.55);
           border-radius: 18px;
-          padding: 16px 18px;
-          width: min(680px, 100%);
+          padding: 20px;
+          width: 100%;
+          max-width: 320px;
           display: flex;
+          flex-direction: column;
           align-items: center;
-          justify-content: space-between;
-          gap: 14px;
+          gap: 12px;
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
           box-shadow: 0 16px 50px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.08);
           transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+        }
+
+        .landing-widget-image {
+          width: 100%;
+          aspect-ratio: 1;
+          max-width: 200px;
+          border-radius: 14px;
+          object-fit: cover;
+          background: rgba(197,215,181,0.1);
+          flex-shrink: 0;
+        }
+
+        .landing-widget-content {
+          text-align: center;
+          width: 100%;
         }
 
         .landing-widget:hover {
@@ -145,6 +183,48 @@ export default function App() {
           background: linear-gradient(135deg, rgba(197,215,181,0.9), rgba(118,168,165,0.85));
           color: rgba(10,26,24,0.95);
         }
+
+        .topic-filter {
+          display: inline-flex;
+          gap: 6px;
+          padding: 4px;
+          border-radius: 999px;
+          border: 1px solid rgba(197,215,181,0.3);
+          background: rgba(118,168,165,0.08);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          margin-top: 12px;
+          flex-wrap: wrap;
+          justify-content: center;
+          min-height: 44px;
+          min-width: 200px;
+        }
+
+        .topic-btn {
+          appearance: none;
+          border: 0;
+          cursor: pointer;
+          border-radius: 999px;
+          padding: 6px 12px;
+          font-family: 'Quicksand', sans-serif;
+          font-weight: 600;
+          font-size: 11px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.7);
+          background: transparent;
+          transition: background 140ms ease, color 140ms ease;
+        }
+
+        .topic-btn:hover {
+          color: rgba(255,255,255,0.9);
+        }
+
+        .topic-btn.active {
+          background: rgba(197,215,181,0.25);
+          color: rgba(197,215,181,1);
+          border: 1px solid rgba(197,215,181,0.4);
+        }
       `}</style>
 
       <div
@@ -158,14 +238,21 @@ export default function App() {
 
       <nav
         style={{
-          position: 'relative',
-          zIndex: 20,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 16,
-          padding: '20px 18px 0',
+          padding: '20px 18px',
+          background: 'rgba(10,26,24,0.95)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(197,215,181,0.1)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -212,7 +299,7 @@ export default function App() {
                 letterSpacing: '-0.01em',
               }}
             >
-              Chemistry Learning Resources
+              Chemistry Learning Tools
             </span>
             <span
               style={{
@@ -239,41 +326,26 @@ export default function App() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           textAlign: 'center',
-          padding: '0 24px',
+          padding: '120px 24px 40px',
+          overflowY: 'auto',
         }}
       >
-        <div className="pill-badge" style={{ marginBottom: 28 }}>
+        <div className="pill-badge" style={{ marginBottom: 28, minWidth: '140px', textAlign: 'center' }}>
           {activeLevel} Chemistry
         </div>
 
         <h1 className="brand-script" style={{ fontSize: 'clamp(2.6rem, 8vw, 5.2rem)', lineHeight: 1.08, margin: 0 }}>
-          Chemistry Learning Resources
+          Chemistry Learning Tools
         </h1>
-
-        <p
-          className="hero-tagline"
-          style={{
-            fontSize: 'clamp(1rem, 2.4vw, 1.2rem)',
-            color: 'rgba(230,245,230,0.97)',
-            fontWeight: 600,
-            maxWidth: 640,
-            lineHeight: 1.7,
-            marginTop: 20,
-            marginBottom: 0,
-            textShadow: '0 1px 4px rgba(255,255,255,0.25), 0 2px 16px rgba(255,255,255,0.15), 0 4px 32px rgba(0,0,0,0.6)',
-          }}
-        >
-          Curated notes, practice, and tools for HKDSE Chemistry.
-        </p>
 
         <div style={{ marginTop: 24 }}>
           <div className="level-toggle" role="tablist" aria-label="Select level">
             <button
               type="button"
               className={`level-btn ${activeLevel === 'F3' ? 'active' : ''}`}
-              onClick={() => setActiveLevel('F3')}
+              onClick={() => { setActiveLevel('F3'); setSelectedTopic('all'); }}
               aria-pressed={activeLevel === 'F3'}
             >
               F3
@@ -281,74 +353,95 @@ export default function App() {
             <button
               type="button"
               className={`level-btn ${activeLevel === 'F4' ? 'active' : ''}`}
-              onClick={() => setActiveLevel('F4')}
+              onClick={() => { setActiveLevel('F4'); setSelectedTopic('all'); }}
               aria-pressed={activeLevel === 'F4'}
             >
               F4
+            </button>
+            <button
+              type="button"
+              className={`level-btn ${activeLevel === 'F5' ? 'active' : ''}`}
+              onClick={() => { setActiveLevel('F5'); setSelectedTopic('all'); }}
+              aria-pressed={activeLevel === 'F5'}
+            >
+              F5
+            </button>
+            <button
+              type="button"
+              className={`level-btn ${activeLevel === 'F6' ? 'active' : ''}`}
+              onClick={() => { setActiveLevel('F6'); setSelectedTopic('all'); }}
+              aria-pressed={activeLevel === 'F6'}
+            >
+              F6
             </button>
           </div>
         </div>
 
         <div style={{ width: 'min(680px, 100%)', marginTop: 26 }}>
-          {activeLevel === 'F3' ? (
-            <a className="landing-widget" href="chemical-bonding.html" aria-label="Open Chemical Bonding">
-              <div style={{ textAlign: 'left' }}>
-                <p className="landing-widget-title">Chemical Bonding</p>
-                <p className="landing-widget-subtitle">Interactive learning page</p>
-              </div>
-              <span className="landing-widget-chip">Open</span>
-            </a>
+          {/* Topic Filter */}
+          <div 
+            className="topic-filter" 
+            role="group" 
+            aria-label="Filter by topic"
+            style={{ visibility: currentTopics.length > 1 ? 'visible' : 'hidden' }}
+          >
+            {currentTopics.map(topic => (
+              <button
+                key={topic}
+                type="button"
+                className={`topic-btn ${selectedTopic === topic ? 'active' : ''}`}
+                onClick={() => setSelectedTopic(topic)}
+                aria-pressed={selectedTopic === topic}
+              >
+                {topic === 'all' ? 'All' : (TOPIC_LABELS[topic] || topic)}
+              </button>
+            ))}
+          </div>
+
+          {/* Page Widgets */}
+          {filteredPages.length > 0 ? (
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', 
+              gap: 20, 
+              marginTop: 16, 
+              width: '100%',
+              maxWidth: '1400px',
+              margin: '16px auto 0',
+              padding: '0 24px'
+            }}>
+              {filteredPages.map(page => (
+                <a
+                  key={page.file}
+                  className="landing-widget"
+                  href={page.file}
+                  aria-label={`Open ${page.title}`}
+                >
+                  {page.image && (
+                    <img
+                      src={`/${page.image}`}
+                      alt=""
+                      className="landing-widget-image"
+                    />
+                  )}
+                  <div className="landing-widget-content">
+                    <p className="landing-widget-title">{page.title}</p>
+                    <p className="landing-widget-subtitle">{page.subtitle}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <a className="landing-widget" href="neutralization-exothermic.html" aria-label="Open Neutralization: Exothermic nature">
-                <div style={{ textAlign: 'left' }}>
-                  <p className="landing-widget-title">Neutralization: Exothermic nature</p>
-                  <p className="landing-widget-subtitle">Interactive notes / explanation page</p>
-                </div>
-                <span className="landing-widget-chip">Open</span>
-              </a>
-
-              <a className="landing-widget" href="titration.html" aria-label="Open Acid-Base Titration">
-                <div style={{ textAlign: 'left' }}>
-                  <p className="landing-widget-title">Acid–Base Titration</p>
-                  <p className="landing-widget-subtitle">Interactive titration simulation</p>
-                </div>
-                <span className="landing-widget-chip">Open</span>
-              </a>
-
-              <a className="landing-widget" href="salt-page.html" aria-label="Open Salt Quiz">
-                <div style={{ textAlign: 'left' }}>
-                  <p className="landing-widget-title">Salt Quiz</p>
-                  <p className="landing-widget-subtitle">Salt solubility rules + preparation method practice</p>
-                </div>
-                <span className="landing-widget-chip">Open</span>
-              </a>
-
-              <a className="landing-widget" href="HOT_guiding_saltprep_reactingmass.html" aria-label="Open HOT questions: salt preparation and reacting masses">
-                <div style={{ textAlign: 'left' }}>
-                  <p className="landing-widget-title">HOT questions: salt preparation and reacting masses</p>
-                  <p className="landing-widget-subtitle">Guiding questions + scaffolded hints</p>
-                </div>
-                <span className="landing-widget-chip">Open</span>
-              </a>
+            <div style={{ 
+              padding: '40px 20px', 
+              textAlign: 'center', 
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: '14px'
+            }}>
+              No pages available for this topic.
             </div>
           )}
         </div>
-
-        <p
-          className="hero-tagline"
-          style={{
-            fontSize: 12,
-            color: 'rgba(255,255,255,0.7)',
-            fontWeight: 700,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            marginTop: 36,
-            textShadow: '0 1px 6px rgba(255,255,255,0.3), 0 2px 12px rgba(0,0,0,0.5)',
-          }}
-        >
-          by ChemLeung
-        </p>
       </div>
     </div>
   );

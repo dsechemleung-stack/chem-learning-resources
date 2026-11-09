@@ -96,6 +96,26 @@
     gap: 10px;
   }
 
+  .back-link {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .back-link:hover {
+    color: #fff;
+    border-color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.08);
+  }
+
   .hero-actions {
     margin-top: 1.25rem;
     display: flex;
@@ -527,6 +547,7 @@
 </style>
 </head>
 <body>
+<script src="/common.js"></script>
 
 <header>
   <span class="brand">Chemistry · Guiding Questions</span>

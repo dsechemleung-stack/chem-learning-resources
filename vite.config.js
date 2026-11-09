@@ -12,6 +12,7 @@ export default defineConfig({
         titration: 'titration.html',
         saltQuiz: 'salt-page.html',
         hotGuidingSaltPrepReactingMass: 'HOT_guiding_saltprep_reactingmass.html',
+        insolubleLayer: 'insoluble-layer.html',
       },
     },
   },

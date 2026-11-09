@@ -52,6 +52,25 @@
     text-align: center;
   }
 
+  .back-link {
+    display: inline-block;
+    padding: 8px 16px;
+    background: rgba(232, 212, 255, 0.08);
+    border: 1px solid rgba(232, 212, 255, 0.2);
+    border-radius: 8px;
+    color: var(--text);
+    text-decoration: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+  }
+  .back-link:hover {
+    background: rgba(232, 212, 255, 0.15);
+    border-color: rgba(232, 212, 255, 0.35);
+  }
+
   .main-grid {
     display: grid;
     grid-template-columns: 280px 1fr;
@@ -516,6 +535,7 @@
 </style>
 </head>
 <body>
+<script src="/common.js"></script>
 
 <h1>Acid–Base Titration</h1>
 <p class="subtitle" id="subtitle">NaOH(aq) into HCl(aq) - Methyl Orange Indicator</p>
