@@ -1,0 +1,1492 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Electron Diagrams of Molecules · Dot &amp; Cross Lab</title>
+    <meta name="description" content="Build dot-and-cross electron diagrams of covalent molecules from the octet rule — automatic solutions, legends and a hands-on practice whiteboard." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23191614'/%3E%3Ccircle cx='12' cy='16' r='6.4' fill='none' stroke='%23f4f1ea' stroke-width='1.5'/%3E%3Ccircle cx='20' cy='16' r='6.4' fill='none' stroke='%23f4f1ea' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='1.5' fill='%23f4f1ea'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --paper: #f4f1ea;
+        --surface: #fffdf8;
+        --ink: #191614;
+        --ink-soft: #4a443d;
+        --muted: #6f675e;
+        --line: #e4ded3;
+        --line-strong: #cdc4b5;
+        --accent: #0f6b57;
+        --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+        --font-body: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+
+      *,
+      *::before,
+      *::after { box-sizing: border-box; }
+
+      html, body { margin: 0; }
+
+      body {
+        background:
+          radial-gradient(1100px 560px at 12% -12%, #ffffff 0%, rgba(255, 255, 255, 0) 62%),
+          radial-gradient(900px 520px at 102% -4%, #eef6f1 0%, rgba(238, 246, 241, 0) 58%),
+          var(--paper);
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      [hidden] { display: none !important; }
+
+      .shell {
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: 30px 22px 56px;
+      }
+
+      /* ---------- header ---------- */
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+        padding-bottom: 22px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 26px;
+      }
+
+      .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+
+      .brand-mark {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: var(--ink);
+        display: grid;
+        place-items: center;
+        flex: none;
+        box-shadow: 0 10px 22px -16px rgba(25, 22, 20, 0.9);
+      }
+      .brand-mark svg { display: block; }
+
+      h1 {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: clamp(25px, 3.2vw, 35px);
+        line-height: 1.04;
+        letter-spacing: -0.012em;
+        margin: 0;
+      }
+
+      .brand-sub {
+        margin: 4px 0 0;
+        font-size: 10.5px;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .switch {
+        display: inline-flex;
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--surface);
+        box-shadow: 0 1px 2px rgba(25, 22, 20, 0.04);
+      }
+      .switch button {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        padding: 8px 19px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: color 0.2s ease, background 0.25s ease;
+      }
+      .switch button:hover { color: var(--ink); }
+      .switch button[aria-selected="true"] { background: var(--ink); color: #fdfbf7; }
+
+      /* ---------- layout ---------- */
+      .layout {
+        display: grid;
+        grid-template-columns: 236px minmax(0, 1fr);
+        gap: 26px;
+        align-items: start;
+      }
+
+      .stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        box-shadow: 0 1px 2px rgba(25, 22, 20, 0.04), 0 26px 50px -44px rgba(25, 22, 20, 0.5);
+      }
+      .panel { padding: 20px; }
+      .palette-card { position: sticky; top: 20px; }
+
+      .eyebrow {
+        font-size: 10.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 0 12px;
+        font-weight: 600;
+      }
+
+      /* ---------- palette ---------- */
+      .palette { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+
+      .atom-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 13px 6px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: #fff;
+        font: inherit;
+        cursor: grab;
+        transition: transform 0.18s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+      }
+      .atom-tile:hover {
+        transform: translateY(-2px);
+        border-color: var(--line-strong);
+        box-shadow: 0 12px 20px -18px rgba(25, 22, 20, 0.85);
+      }
+      .atom-tile:active { cursor: grabbing; transform: translateY(0); }
+      .atom-sym { font-size: 19px; font-weight: 700; line-height: 1; }
+      .atom-val { font-size: 10.5px; color: var(--muted); letter-spacing: 0.01em; }
+
+      .hint { margin: 14px 0 0; font-size: 11.5px; line-height: 1.65; color: var(--muted); }
+
+      /* ---------- dropzone + chips ---------- */
+      .dropzone {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        min-height: 118px;
+        padding: 18px;
+        border: 1.5px dashed var(--line-strong);
+        border-radius: 22px;
+        background: rgba(255, 253, 248, 0.72);
+        transition: border-color 0.2s ease, background 0.2s ease;
+      }
+      .dropzone.is-over { border-color: var(--accent); background: #f1f8f4; }
+
+      .dropzone-hint {
+        margin: 0;
+        flex: 1 0 100%;
+        padding: 20px 0;
+        text-align: center;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .chip {
+        position: relative;
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid var(--edge);
+        display: grid;
+        place-items: center;
+        font: inherit;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.25s ease;
+      }
+      .chip:hover { transform: translateY(-2px); box-shadow: 0 12px 16px -14px rgba(25, 22, 20, 0.9); }
+      .chip-sym { font-size: 19px; font-weight: 700; line-height: 1; }
+      .chip-x {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        width: 17px;
+        height: 17px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: #fff;
+        font-size: 11px;
+        line-height: 17px;
+        text-align: center;
+      }
+
+      .link-btn {
+        appearance: none;
+        border: 0;
+        background: none;
+        font: inherit;
+        font-size: 12px;
+        color: var(--muted);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        cursor: pointer;
+        padding: 0;
+      }
+      .link-btn:hover { color: var(--ink); }
+      .clear-btn { margin-left: auto; }
+
+      /* ---------- solution ---------- */
+      .result-card { padding: 22px; animation: rise 0.42s cubic-bezier(0.22, 0.7, 0.3, 1) both; }
+
+      .formula {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 30px;
+        line-height: 1.1;
+        text-align: center;
+        margin: 0 0 12px;
+      }
+
+      .diagram-frame {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 12px;
+        background-color: #fdfcf8;
+        background-image: radial-gradient(circle at 1px 1px, rgba(25, 22, 20, 0.1) 1px, transparent 0);
+        background-size: 16px 16px;
+      }
+
+      .diagram { display: block; width: 100%; height: auto; max-height: 380px; }
+      .atom-label { fill: var(--ink); font-family: var(--font-body); font-weight: 700; }
+
+      .result-foot {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-top: 16px;
+      }
+
+      .legend-title {
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        margin-bottom: 8px;
+      }
+      .legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+      .legend li { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--ink-soft); }
+
+      .legend-mark { flex: none; width: 14px; height: 14px; display: inline-grid; place-items: center; }
+      .m-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
+      .m-open { width: 8px; height: 8px; border-radius: 50%; border: 1.6px solid var(--ink); }
+      .m-cross { position: relative; width: 12px; height: 12px; }
+      .m-cross::before,
+      .m-cross::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 12px;
+        height: 1.7px;
+        border-radius: 1px;
+        background: var(--ink);
+      }
+      .m-cross::before { transform: translate(-50%, -50%) rotate(45deg); }
+      .m-cross::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+      .stats { display: grid; gap: 4px; font-size: 12px; color: var(--muted); text-align: right; }
+      .stats strong { color: var(--ink); font-weight: 600; }
+
+      .empty-card {
+        padding: 46px 22px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--muted);
+        letter-spacing: 0.01em;
+      }
+
+      .warn-card { padding: 34px 24px; text-align: center; border-color: #eadfc4; background: #fffbf1; }
+      .warn-title { margin: 0; font-size: 13.5px; font-weight: 600; color: #8a5a00; }
+      .warn-text { margin: 7px 0 0; font-size: 12.5px; line-height: 1.6; color: #9a7534; }
+
+      /* ---------- practice ---------- */
+      .practice-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .board-title { font-family: var(--font-display); font-size: 25px; line-height: 1.2; }
+
+      .board-card {
+        padding: 10px;
+        background-color: #fdfcf8;
+        background-image: radial-gradient(circle at 1px 1px, rgba(25, 22, 20, 0.1) 1px, transparent 0);
+        background-size: 18px 18px;
+      }
+      .practice-diagram { max-height: none; touch-action: none; }
+      .p-atom { cursor: grab; }
+      .p-atom:active { cursor: grabbing; }
+      .p-remove { cursor: pointer; }
+      .p-bond { cursor: pointer; }
+
+      .meter {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px 26px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .meter strong { color: var(--ink); font-weight: 600; }
+
+      .actions { display: flex; justify-content: center; gap: 10px; }
+
+      .btn {
+        appearance: none;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 10px 24px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+      }
+      .btn:active { transform: translateY(1px); }
+      .btn-primary { background: var(--ink); border: 1px solid var(--ink); color: #fdfbf7; }
+      .btn-primary:hover { background: #2d2723; }
+      .btn-ghost { background: transparent; border: 1px solid var(--line-strong); color: var(--ink); }
+      .btn-ghost:hover { background: #f7f3eb; }
+
+      .verdict { margin: 2px auto 0; max-width: 640px; text-align: center; font-size: 13px; line-height: 1.65; }
+      .verdict.ok { color: #17714a; font-weight: 500; }
+      .verdict.bad { color: #ab3732; font-weight: 500; }
+
+      /* ---------- footer ---------- */
+      .foot {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 34px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+        font-size: 11.5px;
+        color: var(--muted);
+        letter-spacing: 0.02em;
+      }
+
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: none; }
+      }
+
+      @media (max-width: 880px) {
+        .layout { grid-template-columns: minmax(0, 1fr); }
+        .palette-card { position: static; }
+        .palette { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .shell { padding: 22px 16px 44px; }
+      }
+
+      @media (max-width: 600px) {
+        .stats { text-align: left; }
+        .formula { font-size: 26px; }
+        .atom-tile { padding: 11px 4px; }
+        .atom-sym { font-size: 17px; }
+        .switch { width: 100%; }
+        .switch button { flex: 1; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.001ms !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <script src="/common.js"></script>
+    <div id="root">
+      <div class="shell">
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                <circle cx="10" cy="13" r="6.4" stroke="#FDFBF7" stroke-width="1.3" />
+                <circle cx="16" cy="13" r="6.4" stroke="#FDFBF7" stroke-width="1.3" />
+                <circle cx="8.6" cy="13" r="1.2" fill="#FDFBF7" />
+                <path d="M17.4 11.6l2.4 2.8M19.8 11.6l-2.4 2.8" stroke="#FDFBF7" stroke-width="1.2" stroke-linecap="round" />
+              </svg>
+            </span>
+            <div>
+              <h1>Electron Diagrams of Molecules</h1>
+              <p class="brand-sub">Dot &amp; cross lab · covalent bonding</p>
+            </div>
+          </div>
+          <div class="switch" role="tablist" aria-label="Lab mode">
+            <button type="button" role="tab" data-mode="auto" aria-selected="true">Automatic</button>
+            <button type="button" role="tab" data-mode="practice" aria-selected="false">Practice</button>
+          </div>
+        </header>
+
+        <main>
+          <section id="view-auto" class="layout" aria-label="Automatic mode">
+            <aside class="card panel palette-card">
+              <h2 class="eyebrow">Atoms</h2>
+              <div class="palette" id="palette-auto"></div>
+              <p class="hint">Click or drag atoms into the sandbox. The lab works out the structure from the octet rule — try any combination (OF₂, NCl₃, SF₂, PCl₃, CO₂…).</p>
+            </aside>
+            <div class="stack">
+              <div id="sandbox" class="dropzone" aria-label="Atom sandbox"></div>
+              <div id="result"></div>
+            </div>
+          </section>
+
+          <section id="view-practice" class="layout" aria-label="Practice mode" hidden>
+            <aside class="card panel palette-card">
+              <h2 class="eyebrow">Atoms</h2>
+              <div class="palette" id="palette-practice"></div>
+              <p class="hint">Click or drag atoms onto the board. Drag two atoms together to bond them; drag apart to break a bond. Click an atom to add a lone pair (cycle to remove). Click a bond to change its order.</p>
+            </aside>
+            <div class="stack">
+              <div class="practice-head">
+                <span class="board-title" id="practice-title">Practice board</span>
+                <button type="button" class="link-btn" id="practice-clear" hidden>Clear all</button>
+              </div>
+              <div class="card board-card" id="practice-drop">
+                <div id="practice-board"></div>
+              </div>
+              <div class="card empty-card" id="practice-empty">Drag or click atoms from the left to place them on the board, then drag them together to form bonds.</div>
+              <div id="practice-controls" class="stack" style="gap: 12px" hidden>
+                <div class="meter">
+                  <span>Electrons: <strong id="practice-used">0</strong> / <span id="practice-total">0</span></span>
+                  <span id="practice-octet">Octet / duplet: —</span>
+                </div>
+                <div class="actions">
+                  <button type="button" class="btn btn-primary" id="practice-check">Check</button>
+                  <button type="button" class="btn btn-ghost" id="practice-clear-2">Clear</button>
+                </div>
+                <p class="verdict" id="practice-verdict" hidden></p>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <footer class="foot">
+          <span>Dot &amp; cross method</span>
+        </footer>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        /* ============================================================
+           Chemistry core — covalent Lewis-structure solver and
+           dot-and-cross diagram builder. Structures derive from the
+           octet rule with formal charge = 0.
+           ============================================================ */
+
+        var ATOMS = [
+          { sym: "H", name: "Hydrogen", valence: 1, color: "#e8f0fe", stroke: "#1f4fd8" },
+          { sym: "C", name: "Carbon", valence: 4, color: "#f4f4f4", stroke: "#26231f" },
+          { sym: "N", name: "Nitrogen", valence: 5, color: "#eef6ff", stroke: "#2a6fb0" },
+          { sym: "O", name: "Oxygen", valence: 6, color: "#fdeaea", stroke: "#c0392b" },
+          { sym: "F", name: "Fluorine", valence: 7, color: "#eafff4", stroke: "#1a8855" },
+          { sym: "Cl", name: "Chlorine", valence: 7, color: "#eafff4", stroke: "#1a8855" },
+          { sym: "S", name: "Sulfur", valence: 6, color: "#fdf6e3", stroke: "#a87a08" },
+          { sym: "P", name: "Phosphorus", valence: 5, color: "#fff5e6", stroke: "#b86b00" }
+        ];
+
+        var VALENCE = { H: 1, C: 4, N: 5, O: 6, F: 7, Cl: 7, S: 6, P: 5, Si: 4, B: 3, Br: 7, I: 7 };
+        var EN = { H: 2.2, C: 2.55, N: 3.04, O: 3.44, F: 3.98, Cl: 3.16, S: 2.58, P: 2.19, Si: 1.9, B: 2.04, Br: 2.96, I: 2.66 };
+        var ELEM_NAME = { H: "hydrogen", C: "carbon", N: "nitrogen", O: "oxygen", F: "fluorine", Cl: "chlorine", S: "sulfur", P: "phosphorus", Si: "silicon", B: "boron", Br: "bromine", I: "iodine" };
+        var HALOGEN = ["F", "Cl", "Br", "I"];
+        var PERIOD2 = ["B", "C", "N", "O", "F"];
+        var PERIOD3 = ["Si", "P", "S", "Cl", "Br", "I"];
+        var ATOM_R = 62;
+        var MARKS = ["dot", "cross", "open"];
+
+        function has(list, v) { return list.indexOf(v) !== -1; }
+        function isCentralCapable(s) { return s !== "H" && !has(HALOGEN, s); }
+        function octetTarget(s) { return s === "H" ? 2 : s === "B" ? 6 : 8; }
+        function octetMax(s) { return s === "H" ? 2 : s === "B" ? 6 : has(PERIOD2, s) ? 8 : has(PERIOD3, s) ? 12 : 8; }
+        function demandBase(s) { return octetTarget(s) - VALENCE[s]; }
+
+        function okOctet(sym, surr) {
+          if (sym === "H") return surr === 2;
+          if (sym === "B") return surr === 6;
+          if (has(PERIOD2, sym)) return surr === 8;
+          if (has(PERIOD3, sym)) return surr >= 8 && surr <= 12;
+          return surr === 8;
+        }
+
+        function centralDemandOptions(sym) {
+          var base = demandBase(sym);
+          if (has(PERIOD3, sym)) {
+            var opts = [];
+            for (var d = base; d <= VALENCE[sym]; d += 2) {
+              if (d < 0) continue;
+              if (d + VALENCE[sym] <= octetMax(sym)) opts.push(d);
+            }
+            return opts.length ? opts : [base];
+          }
+          return [base];
+        }
+
+        /* ---------- connectivity inference ---------- */
+        function buildConnectivity(syms) {
+          var n = syms.length;
+          var centralCapable = syms.map(function (_, i) { return i; }).filter(function (i) { return isCentralCapable(syms[i]); });
+          var bonds = [];
+
+          if (centralCapable.length === 0) {
+            var c = syms.reduce(function (bi, s, i) { return (EN[s] < EN[syms[bi]] ? i : bi); }, 0);
+            for (var i = 0; i < n; i++) if (i !== c) bonds.push({ a: c, b: i });
+            return { bonds: bonds, centers: [c] };
+          }
+
+          var elems = {};
+          centralCapable.forEach(function (i) { elems[syms[i]] = true; });
+          var elemKeys = Object.keys(elems);
+
+          if (elemKeys.length === 1) {
+            var chain = centralCapable.slice().sort(function (x, y) { return x - y; });
+            var chainDeg = {};
+            for (var k = 0; k < chain.length - 1; k++) {
+              bonds.push({ a: chain[k], b: chain[k + 1] });
+              chainDeg[chain[k]] = (chainDeg[chain[k]] || 0) + 1;
+              chainDeg[chain[k + 1]] = (chainDeg[chain[k + 1]] || 0) + 1;
+            }
+            var cap = {};
+            chain.forEach(function (i2) {
+              cap[i2] = Math.max.apply(null, centralDemandOptions(syms[i2])) - (chainDeg[i2] || 0);
+            });
+            var terminals = syms.map(function (_, i3) { return i3; }).filter(function (i4) { return !isCentralCapable(syms[i4]); });
+            for (var t = 0; t < terminals.length; t++) {
+              var td = demandBase(syms[terminals[t]]);
+              var best = -1;
+              for (var ci = 0; ci < chain.length; ci++) {
+                var idx = chain[ci];
+                if (cap[idx] >= td && (best === -1 || cap[idx] > cap[best])) best = idx;
+              }
+              if (best === -1) return null;
+              bonds.push({ a: best, b: terminals[t] });
+              cap[best] -= td;
+            }
+            return { bonds: bonds, centers: chain };
+          }
+
+          var c2 = centralCapable.reduce(function (bi, i5) { return (EN[syms[i5]] < EN[syms[bi]] ? i5 : bi); }, centralCapable[0]);
+          for (var j = 0; j < n; j++) if (j !== c2) bonds.push({ a: c2, b: j });
+          return { bonds: bonds, centers: [c2] };
+        }
+
+        /* ---------- tree demand solver (FC = 0) ---------- */
+        function solveTree(syms, conn) {
+          var n = syms.length;
+          var bonds = conn.bonds;
+          var degree = new Array(n).fill(0);
+          bonds.forEach(function (b) { degree[b.a]++; degree[b.b]++; });
+
+          var opts = syms.map(function (s, i) {
+            if (degree[i] <= 1) {
+              var d = demandBase(s);
+              return d >= 1 && d <= 3 ? [d] : null;
+            }
+            return centralDemandOptions(s);
+          });
+          if (opts.some(function (o) { return o === null; })) return null;
+
+          var flex = [];
+          opts.forEach(function (o, i) { if (o.length > 1) flex.push(i); });
+          var choice = opts.map(function (o) { return o[0]; });
+
+          function attempt() {
+            var demand = choice.slice();
+            var order = bonds.map(function () { return 0; });
+            var deg = degree.slice();
+            var edgesLeft = bonds.length;
+            while (edgesLeft > 0) {
+              var leaf = -1;
+              for (var i = 0; i < n; i++) { if (deg[i] === 1) { leaf = i; break; } }
+              if (leaf === -1) return null;
+              var ei = -1;
+              for (var k = 0; k < bonds.length; k++) {
+                if (order[k] === 0 && (bonds[k].a === leaf || bonds[k].b === leaf)) { ei = k; break; }
+              }
+              if (ei === -1) return null;
+              var nb = bonds[ei].a === leaf ? bonds[ei].b : bonds[ei].a;
+              var o = demand[leaf];
+              if (o < 1 || o > 3) return null;
+              order[ei] = o;
+              demand[leaf] -= o;
+              demand[nb] -= o;
+              if (demand[nb] < 0) return null;
+              deg[leaf]--; deg[nb]--; edgesLeft--;
+            }
+            for (var z = 0; z < demand.length; z++) if (demand[z] !== 0) return null;
+            return order;
+          }
+
+          function bt(k) {
+            if (k === flex.length) return attempt();
+            var i = flex[k];
+            for (var v = 0; v < opts[i].length; v++) {
+              choice[i] = opts[i][v];
+              var r = bt(k + 1);
+              if (r) return r;
+            }
+            return null;
+          }
+
+          var order = bt(0);
+          if (!order) return null;
+
+          var sumOrders = new Array(n).fill(0);
+          bonds.forEach(function (b, k) { sumOrders[b.a] += order[k]; sumOrders[b.b] += order[k]; });
+          var lonePairs = syms.map(function (s, i) { return (VALENCE[s] - sumOrders[i]) / 2; });
+          if (lonePairs.some(function (l) { return l < 0 || !Number.isInteger(l); })) return null;
+          for (var i6 = 0; i6 < n; i6++) {
+            var surr = 2 * sumOrders[i6] + 2 * lonePairs[i6];
+            if (!okOctet(syms[i6], surr)) return null;
+          }
+          var V = syms.reduce(function (s, x) { return s + VALENCE[x]; }, 0);
+          return {
+            syms: syms,
+            bonds: bonds.map(function (b, k) { return { a: b.a, b: b.b, order: order[k] }; }),
+            lonePairs: lonePairs,
+            V: V
+          };
+        }
+
+        function solve(syms) {
+          if (!syms || syms.length < 2) return null;
+          var V = syms.reduce(function (s, x) { return s + (VALENCE[x] || 0); }, 0);
+          if (V % 2 !== 0) return null;
+          var conn = buildConnectivity(syms);
+          if (!conn) return null;
+          return solveTree(syms, conn);
+        }
+
+        /* ---------- marks ---------- */
+        function assignMarks(syms) {
+          var elemMark = {};
+          var distinct = [];
+          syms.forEach(function (s) {
+            if (!(s in elemMark)) { elemMark[s] = MARKS[distinct.length % MARKS.length]; distinct.push(s); }
+          });
+          if (distinct.length === 1) {
+            return { assign: syms.map(function (_, i) { return MARKS[i % MARKS.length]; }), perAtom: true };
+          }
+          return { assign: syms.map(function (s) { return elemMark[s]; }), perAtom: false };
+        }
+
+        function buildLegend(syms, assign, perAtom) {
+          var seen = {};
+          var legend = [];
+          if (perAtom) {
+            var elem = ELEM_NAME[syms[0]] || syms[0];
+            var idx = 0;
+            syms.forEach(function (s, i) {
+              var m = assign[i];
+              if (!(m in seen)) {
+                seen[m] = true;
+                idx++;
+                legend.push({ type: m, label: "outermost shell electron from " + elem + " (atom " + idx + ")" });
+              }
+            });
+          } else {
+            syms.forEach(function (s, i) {
+              var m = assign[i];
+              if (!(m in seen)) {
+                seen[m] = true;
+                legend.push({ type: m, label: "outermost shell electron from " + (ELEM_NAME[s] || s) });
+              }
+            });
+          }
+          return legend;
+        }
+
+        /* ---------- layout ---------- */
+        var ROOT_DIRECTIONS = [Math.PI, 0, -Math.PI / 2, Math.PI / 2];
+
+        function angDiff(a, b) {
+          var d = a - b;
+          while (d > Math.PI) d -= 2 * Math.PI;
+          while (d < -Math.PI) d += 2 * Math.PI;
+          return d;
+        }
+
+        function bondDistance(R, allAngles) {
+          if (allAngles.length < 2) return 1.35 * R;
+          var sorted = allAngles
+            .map(function (a) { return ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); })
+            .sort(function (a, b) { return a - b; });
+          var thetaMin = Infinity;
+          for (var k = 0; k < sorted.length; k++) {
+            var a1 = sorted[k];
+            var a2 = sorted[(k + 1) % sorted.length];
+            var g = a2 - a1;
+            if (k === sorted.length - 1) g += 2 * Math.PI;
+            if (g < thetaMin) thetaMin = g;
+          }
+          var d = (R / Math.sin(thetaMin / 2)) * 1.04;
+          return Math.max(1.35 * R, Math.min(2 * R, d));
+        }
+
+        function layoutPositions(syms, bonds, rootIndex) {
+          var n = syms.length;
+          var R = ATOM_R;
+          var adj = syms.map(function () { return []; });
+          bonds.forEach(function (b) { adj[b.a].push(b.b); adj[b.b].push(b.a); });
+          var pos = new Array(n).fill(null);
+          pos[rootIndex] = { x: 0, y: 0 };
+          var placed = {};
+          placed[rootIndex] = true;
+          var queue = [{ i: rootIndex, toParent: null }];
+          while (queue.length) {
+            var item = queue.shift();
+            var children = adj[item.i].filter(function (j) { return !placed[j]; });
+            var m = children.length;
+            var childAngles;
+            if (item.toParent === null) {
+              childAngles = m <= 4
+                ? ROOT_DIRECTIONS.slice(0, m)
+                : Array.from({ length: m }, function (_, k) { return -Math.PI / 2 + (2 * Math.PI * k) / m; });
+            } else {
+              var away = item.toParent + Math.PI;
+              if (m === 0) childAngles = [];
+              else if (m === 1) childAngles = [away];
+              else childAngles = Array.from({ length: m }, function (_, k) { return away + (k / (m - 1) - 0.5) * Math.PI * 0.85; });
+            }
+            var allAngles = item.toParent === null ? childAngles : [item.toParent].concat(childAngles);
+            var d = bondDistance(R, allAngles);
+            children.forEach(function (j, k) {
+              var ang = childAngles[k];
+              pos[j] = { x: pos[item.i].x + Math.cos(ang) * d, y: pos[item.i].y + Math.sin(ang) * d };
+              placed[j] = true;
+              queue.push({ i: j, toParent: ang + Math.PI });
+            });
+          }
+          return pos.map(function (p) { return { x: p.x, y: p.y, r: R }; });
+        }
+
+        /* ---------- electron placement ---------- */
+        function bondElectrons(a, b, pairs, assignA, assignB) {
+          var dx = b.x - a.x, dy = b.y - a.y;
+          var len = Math.hypot(dx, dy) || 1;
+          var ax = dx / len, ay = dy / len;
+          var px = -ay, py = ax;
+          var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+          var spacing = 18, inner = 6;
+          var out = [];
+          for (var i = 0; i < pairs; i++) {
+            var off = (i - (pairs - 1) / 2) * spacing;
+            var cx = mx + px * off, cy = my + py * off;
+            out.push({ type: assignA, x: cx - ax * inner, y: cy - ay * inner });
+            out.push({ type: assignB, x: cx + ax * inner, y: cy + ay * inner });
+          }
+          return out;
+        }
+
+        function loneElectrons(atom, occupiedAngles, pairs, assign, bondMids, commonArea) {
+          if (pairs <= 0) return [];
+          var rr = atom.r;
+          var placed = [];
+          var out = [];
+          var sample = [];
+          for (var a = 0; a < 360; a += 4) sample.push((a * Math.PI) / 180);
+          var minGap = Math.PI / 9;
+          for (var p = 0; p < pairs; p++) {
+            var best = null, bestDist = -1;
+            for (var s = 0; s < sample.length; s++) {
+              var ang = sample[s];
+              var minD = Infinity;
+              for (var oi = 0; oi < occupiedAngles.length; oi++) minD = Math.min(minD, Math.abs(angDiff(ang, occupiedAngles[oi])));
+              for (var pi = 0; pi < placed.length; pi++) minD = Math.min(minD, Math.abs(angDiff(ang, placed[pi])));
+              if (minD > bestDist) { bestDist = minD; best = ang; }
+            }
+            if (best === null) break;
+            if (bestDist < minGap && commonArea && bondMids && bondMids.length) {
+              var bm = bondMids[p % bondMids.length];
+              var ring = Math.floor(p / bondMids.length);
+              var off = 14 + ring * 12;
+              var cx = bm.mx + bm.px * off, cy = bm.my + bm.py * off;
+              out.push({ type: assign, x: cx, y: cy });
+              out.push({ type: assign, x: cx + bm.px * 7, y: cy + bm.py * 7 });
+            } else {
+              placed.push(best);
+              var ex = atom.x + rr * Math.cos(best), ey = atom.y + rr * Math.sin(best);
+              var tx = -Math.sin(best), ty = Math.cos(best);
+              out.push({ type: assign, x: ex - tx * 5, y: ey - ty * 5 });
+              out.push({ type: assign, x: ex + tx * 5, y: ey + ty * 5 });
+            }
+          }
+          return out;
+        }
+
+        function computeElectrons(atoms, bonds, orders, lonePairsArr, commonArea) {
+          var n = atoms.length;
+          var occupied = atoms.map(function () { return []; });
+          var bondMids = atoms.map(function () { return []; });
+          bonds.forEach(function (b) {
+            var a = atoms[b.a], c = atoms[b.b];
+            var dx = c.x - a.x, dy = c.y - a.y, len = Math.hypot(dx, dy) || 1;
+            var ax = dx / len, ay = dy / len;
+            occupied[b.a].push(Math.atan2(ay, ax));
+            occupied[b.b].push(Math.atan2(-ay, -ax));
+            var mx = (a.x + c.x) / 2, my = (a.y + c.y) / 2;
+            var px = -ay, py = ax;
+            bondMids[b.a].push({ mx: mx, my: my, px: px, py: py });
+            bondMids[b.b].push({ mx: mx, my: my, px: -px, py: -py });
+          });
+          var R = atoms[0] ? atoms[0].r : ATOM_R;
+          for (var i = 0; i < n; i++) {
+            for (var j = 0; j < n; j++) {
+              if (i === j) continue;
+              var ddx = atoms[j].x - atoms[i].x, ddy = atoms[j].y - atoms[i].y;
+              if (Math.hypot(ddx, ddy) < 2.3 * R) {
+                var ang = Math.atan2(ddy, ddx);
+                var dup = occupied[i].some(function (a) { return Math.abs(angDiff(a, ang)) < 0.01; });
+                if (!dup) occupied[i].push(ang);
+              }
+            }
+          }
+          var electrons = [];
+          bonds.forEach(function (b, k) {
+            electrons.push.apply(electrons, bondElectrons(atoms[b.a], atoms[b.b], orders[k], atoms[b.a].assign, atoms[b.b].assign));
+          });
+          atoms.forEach(function (a, i) {
+            if (lonePairsArr[i] > 0) {
+              electrons.push.apply(electrons, loneElectrons(a, occupied[i], lonePairsArr[i], a.assign, bondMids[i], commonArea));
+            }
+          });
+          return electrons;
+        }
+
+        /* ---------- whiteboard helpers ---------- */
+        function marksForAtoms(syms) {
+          return assignMarks(syms).assign;
+        }
+
+        var MAX_BONDS = { H: 1, B: 3, C: 4, N: 3, O: 2, F: 1, Si: 4, P: 6, S: 6, Cl: 6, Br: 6, I: 6 };
+        function maxBonds(sym) { return MAX_BONDS[sym] || 4; }
+
+        /* ---------- formula ---------- */
+        var H_FIRST_GROUP = ["O", "S", "Se", "F", "Cl", "Br", "I"];
+        var ELEM_PRIORITY_NO_H = ["C", "Si", "B", "N", "P", "S", "O", "F", "Cl", "Br", "I", "H"];
+        var ELEM_PRIORITY_H_FIRST = ["H", "O", "S", "F", "Cl", "Br", "I", "C", "N", "P", "Si", "B"];
+        var SUBSCRIPTS = "₀₁₂₃₄₅₆₇₈₉";
+
+        function formulaOf(syms, bonds) {
+          var counts = {};
+          syms.forEach(function (s) { counts[s] = (counts[s] || 0) + 1; });
+
+          var hFirst = false;
+          if (counts["H"]) {
+            if (bonds && bonds.length) {
+              var hIdx = syms.map(function (s, i) { return s === "H" ? i : -1; }).filter(function (i) { return i >= 0; });
+              hFirst = hIdx.every(function (i) {
+                var nbrs = bonds
+                  .filter(function (b) { return b.a === i || b.b === i; })
+                  .map(function (b) { return b.a === i ? syms[b.b] : syms[b.a]; });
+                return nbrs.some(function (nb) { return has(H_FIRST_GROUP, nb); });
+              });
+              if (!hFirst && counts["H"] === 1 && counts["C"] === 1 && counts["N"] === 1) {
+                var h = hIdx[0];
+                var cNbrs = bonds
+                  .filter(function (b) { return b.a === h || b.b === h; })
+                  .map(function (b) { return b.a === h ? syms[b.b] : syms[b.a]; });
+                if (has(cNbrs, "C")) {
+                  var cIdx = syms.indexOf("C");
+                  var cNbrs2 = bonds
+                    .filter(function (b) { return b.a === cIdx || b.b === cIdx; })
+                    .map(function (b) { return b.a === cIdx ? syms[b.b] : syms[b.a]; });
+                  if (has(cNbrs2, "N")) hFirst = true;
+                }
+              }
+            } else {
+              hFirst = syms.some(function (s) { return has(H_FIRST_GROUP, s); });
+            }
+          }
+
+          var priority = hFirst ? ELEM_PRIORITY_H_FIRST : ELEM_PRIORITY_NO_H;
+          var order = priority.filter(function (s) { return counts[s]; });
+          Object.keys(counts).sort().forEach(function (s) { if (!has(order, s)) order.push(s); });
+
+          function sub(n) {
+            if (n <= 1) return "";
+            return String(n).split("").map(function (d) { return SUBSCRIPTS[+d]; }).join("");
+          }
+          return order.map(function (s) { return s + sub(counts[s]); }).join("");
+        }
+
+        /* ---------- build diagram ---------- */
+        function chooseRoot(syms, bonds, lonePairs) {
+          var n = syms.length;
+          var deg = new Array(n).fill(0);
+          bonds.forEach(function (b) { deg[b.a]++; deg[b.b]++; });
+          var best = 0;
+          for (var i = 1; i < n; i++) {
+            if (deg[i] > deg[best]) best = i;
+            else if (deg[i] === deg[best]) {
+              if (lonePairs[i] > lonePairs[best]) best = i;
+              else if (lonePairs[i] === lonePairs[best] && (VALENCE[syms[i]] || 0) > (VALENCE[syms[best]] || 0)) best = i;
+            }
+          }
+          return best;
+        }
+
+        function buildDiagram(syms) {
+          var sol = solve(syms);
+          if (!sol) return null;
+          var marked = assignMarks(syms);
+          var assign = marked.assign;
+          var root = chooseRoot(syms, sol.bonds, sol.lonePairs);
+          var positions = layoutPositions(syms, sol.bonds, root);
+          var atoms = syms.map(function (s, i) {
+            return {
+              sym: s,
+              x: positions[i].x,
+              y: positions[i].y,
+              r: positions[i].r,
+              assign: assign[i],
+              lonePairs: sol.lonePairs[i]
+            };
+          });
+          var bonds = sol.bonds;
+          var legend = buildLegend(syms, assign, marked.perAtom);
+
+          var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+          atoms.forEach(function (a) {
+            minX = Math.min(minX, a.x - a.r);
+            maxX = Math.max(maxX, a.x + a.r);
+            minY = Math.min(minY, a.y - a.r);
+            maxY = Math.max(maxY, a.y + a.r);
+          });
+          var pad = 28;
+          var viewBox = { x: minX - pad, y: minY - pad, w: maxX - minX + 2 * pad, h: maxY - minY + 2 * pad };
+
+          var electrons = computeElectrons(atoms, bonds, bonds.map(function (b) { return b.order; }), atoms.map(function (a) { return a.lonePairs; }), false);
+          var counts = { dot: 0, cross: 0, open: 0 };
+          electrons.forEach(function (e) { counts[e.type]++; });
+
+          return {
+            syms: syms,
+            formula: formulaOf(syms, sol.bonds),
+            atoms: atoms,
+            bonds: bonds,
+            legend: legend,
+            electrons: electrons,
+            counts: counts,
+            V: sol.V,
+            viewBox: viewBox
+          };
+        }
+
+        /* ============================================================
+           Rendering
+           ============================================================ */
+
+        function r2(v) { return Math.round(v * 100) / 100; }
+
+        function atomBySym(sym) {
+          for (var i = 0; i < ATOMS.length; i++) if (ATOMS[i].sym === sym) return ATOMS[i];
+          return null;
+        }
+
+        function markSVG(type, x, y) {
+          if (type === "dot") return '<circle cx="' + r2(x) + '" cy="' + r2(y) + '" r="4.5" fill="#191614" />';
+          if (type === "open") return '<circle cx="' + r2(x) + '" cy="' + r2(y) + '" r="4.5" fill="none" stroke="#191614" stroke-width="1.6" />';
+          var s = 5;
+          return '<g stroke="#191614" stroke-width="2" stroke-linecap="round">' +
+            '<line x1="' + r2(x - s) + '" y1="' + r2(y - s) + '" x2="' + r2(x + s) + '" y2="' + r2(y + s) + '" />' +
+            '<line x1="' + r2(x - s) + '" y1="' + r2(y + s) + '" x2="' + r2(x + s) + '" y2="' + r2(y - s) + '" />' +
+            '</g>';
+        }
+
+        function legendHTML(legend) {
+          if (!legend || !legend.length) return "";
+          return '<div class="legend-block">' +
+            '<div class="legend-title">Legend</div>' +
+            '<ul class="legend">' +
+            legend.map(function (l) {
+              return '<li><span class="legend-mark"><span class="m-' + l.type + '"></span></span><span>' + l.label + '</span></li>';
+            }).join("") +
+            '</ul></div>';
+        }
+
+        function paletteHTML(scope) {
+          return ATOMS.map(function (a) {
+            return '<button type="button" class="atom-tile" draggable="true" data-add="' + a.sym + '" data-scope="' + scope + '" aria-label="Add ' + a.name + '">' +
+              '<span class="atom-sym" style="color:' + a.stroke + '">' + a.sym + '</span>' +
+              '<span class="atom-val">' + a.valence + ' e⁻</span>' +
+              '</button>';
+          }).join("");
+        }
+
+        function solutionSVG(diagram) {
+          var vb = diagram.viewBox;
+          var out = '<svg class="diagram" viewBox="' + r2(vb.x) + ' ' + r2(vb.y) + ' ' + r2(vb.w) + ' ' + r2(vb.h) + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Dot and cross electron diagram of ' + diagram.formula + '">';
+          diagram.atoms.forEach(function (a) {
+            out += '<circle cx="' + r2(a.x) + '" cy="' + r2(a.y) + '" r="' + a.r + '" fill="none" stroke="#191614" stroke-width="1.5" opacity="0.9" />';
+          });
+          diagram.atoms.forEach(function (a) {
+            out += '<text class="atom-label" x="' + r2(a.x) + '" y="' + r2(a.y + 7) + '" text-anchor="middle" font-size="' + Math.round(a.r * 0.42) + '" style="pointer-events:none">' + a.sym + '</text>';
+          });
+          diagram.electrons.forEach(function (e) { out += markSVG(e.type, e.x, e.y); });
+          out += '</svg>';
+          return out;
+        }
+
+        /* ============================================================
+           Automatic mode
+           ============================================================ */
+
+        var state = {
+          mode: "auto",
+          sandbox: [],
+          practice: { atoms: [], bonds: [], checked: false }
+        };
+
+        function renderSandbox() {
+          var el = document.getElementById("sandbox");
+          var html = "";
+          if (state.sandbox.length === 0) {
+            html = '<p class="dropzone-hint">Drag or click an atom to start building a molecule…</p>';
+          } else {
+            state.sandbox.forEach(function (sym, i) {
+              var a = atomBySym(sym);
+              html += '<button type="button" class="chip" data-remove-chip="' + i + '" style="--edge:' + a.stroke + '" title="Remove ' + a.name + '">' +
+                '<span class="chip-sym" style="color:' + a.stroke + '">' + sym + '</span>' +
+                '<span class="chip-x" aria-hidden="true">×</span>' +
+                '</button>';
+            });
+            html += '<button type="button" class="link-btn clear-btn" data-clear-auto="1">Clear all</button>';
+          }
+          el.innerHTML = html;
+        }
+
+        function renderResult() {
+          var el = document.getElementById("result");
+          var syms = state.sandbox;
+
+          if (syms.length < 2) {
+            el.innerHTML = '<div class="card empty-card">Add at least two atoms to form a molecule.</div>';
+            return;
+          }
+
+          var diagram = buildDiagram(syms);
+          if (!diagram) {
+            el.innerHTML = '<div class="card warn-card">' +
+              '<p class="warn-title">No valid octet structure can be formed with these atoms.</p>' +
+              '<p class="warn-text">The octet rule can’t be satisfied for this combination (e.g. odd electron count, or too many / too few atoms). Try a different set.</p>' +
+              '</div>';
+            return;
+          }
+
+          var expanded = diagram.atoms.some(function (a, i) {
+            var sumO = diagram.bonds
+              .filter(function (b) { return b.a === i || b.b === i; })
+              .reduce(function (s, b) { return s + b.order; }, 0);
+            return 2 * sumO + 2 * a.lonePairs > 8;
+          });
+
+          var countsLine = diagram.counts.dot + " dots · " + diagram.counts.cross + " crosses" +
+            (diagram.counts.open ? " · " + diagram.counts.open + " open" : "");
+
+          el.innerHTML = '<article class="card result-card">' +
+            '<h2 class="formula">' + diagram.formula + '</h2>' +
+            '<div class="diagram-frame">' + solutionSVG(diagram) + '</div>' +
+            '<div class="result-foot">' +
+            legendHTML(diagram.legend) +
+            '<div class="stats">' +
+            '<div>' + (expanded ? "Expanded octet ✓" : "Octet satisfied ✓") + '</div>' +
+            '<div>' + countsLine + '</div>' +
+            '<div>Total outermost shell e⁻: <strong>' + diagram.V + '</strong></div>' +
+            '</div></div></article>';
+        }
+
+        function renderAuto() {
+          renderSandbox();
+          renderResult();
+        }
+
+        function addAutoAtom(sym) {
+          if (state.sandbox.length >= 8) return;
+          state.sandbox.push(sym);
+          renderAuto();
+        }
+
+        /* ============================================================
+           Practice mode
+           ============================================================ */
+
+        var R = 62;
+        var FORM_DIST = 1.55 * R;
+        var BREAK_DIST = 2.1 * R;
+        var VB_W = 780;
+        var VB_H = 470;
+        var P_VAL = { H: 1, B: 3, C: 4, N: 5, O: 6, F: 7, Si: 4, P: 5, S: 6, Cl: 7, Br: 7, I: 7 };
+        var atomSeq = 1;
+        var dragState = null;
+
+        function recomputeBonds(nextAtoms, prevBonds) {
+          var counts = {};
+          nextAtoms.forEach(function (a) { counts[a.id] = 0; });
+          var keep = {};
+          var keepOrder = {};
+
+          prevBonds.forEach(function (b) {
+            var a1 = null, a2 = null;
+            nextAtoms.forEach(function (a) {
+              if (a.id === b.a) a1 = a;
+              if (a.id === b.b) a2 = a;
+            });
+            if (!a1 || !a2) return;
+            if (Math.hypot(a1.x - a2.x, a1.y - a2.y) < BREAK_DIST) {
+              var key = [b.a, b.b].sort().join("|");
+              keep[key] = true;
+              keepOrder[key] = b.order;
+              counts[b.a]++;
+              counts[b.b]++;
+            }
+          });
+
+          for (var i = 0; i < nextAtoms.length; i++) {
+            for (var j = i + 1; j < nextAtoms.length; j++) {
+              var a = nextAtoms[i], b = nextAtoms[j];
+              var k = [a.id, b.id].sort().join("|");
+              if (Math.hypot(a.x - b.x, a.y - b.y) < FORM_DIST && !keep[k] &&
+                  counts[a.id] < maxBonds(a.sym) && counts[b.id] < maxBonds(b.sym)) {
+                keep[k] = true;
+                counts[a.id]++;
+                counts[b.id]++;
+              }
+            }
+          }
+
+          return Object.keys(keep).map(function (k) {
+            var pair = k.split("|");
+            return { a: pair[0], b: pair[1], order: keepOrder[k] || 1 };
+          });
+        }
+
+        function addPracticeAtom(sym, x, y) {
+          var p = state.practice;
+          if (p.atoms.length >= 8) return;
+          var cx = x, cy = y;
+          if (typeof cx !== "number" || typeof cy !== "number") {
+            cx = VB_W / 2 + ((p.atoms.length % 6) - 2) * 26;
+            cy = VB_H / 2 + ((p.atoms.length % 3) - 1) * 26;
+          }
+          p.atoms.push({ id: "a" + (atomSeq++), sym: sym, x: cx, y: cy, lonePairs: 0 });
+          p.bonds = recomputeBonds(p.atoms, p.bonds);
+          p.checked = false;
+          renderPractice();
+        }
+
+        function practiceValidation() {
+          var p = state.practice;
+          if (p.atoms.length === 0) return null;
+          var orders = p.bonds.map(function (b) { return b.order; });
+
+          function sumAt(i) {
+            return p.bonds.reduce(function (s, b, k) {
+              return s + ((b.a === p.atoms[i].id || b.b === p.atoms[i].id) ? orders[k] : 0);
+            }, 0);
+          }
+
+          var octetOk = p.atoms.every(function (a, i) {
+            var v = 2 * sumAt(i) + 2 * a.lonePairs;
+            if (a.sym === "H") return v === 2;
+            if (a.sym === "B") return v === 6;
+            var p2 = has(["B", "C", "N", "O", "F"], a.sym);
+            var p3 = has(["Si", "P", "S", "Cl", "Br", "I"], a.sym);
+            if (p2 && a.sym !== "B") return v === 8;
+            if (p3) return v >= 8 && v <= 12;
+            return v === 8;
+          });
+
+          var usedE = 2 * orders.reduce(function (s, o) { return s + o; }, 0) +
+            2 * p.atoms.reduce(function (s, a) { return s + a.lonePairs; }, 0);
+          var V = p.atoms.reduce(function (s, a) { return s + (P_VAL[a.sym] || 0); }, 0);
+          var expanded = p.atoms.some(function (a, i) { return 2 * sumAt(i) + 2 * a.lonePairs > 8; });
+
+          return { octetOk: octetOk, countOk: usedE === V, usedE: usedE, V: V, expanded: expanded, ok: octetOk && usedE === V };
+        }
+
+        function practiceSVG(atoms, links, electrons) {
+          var out = '<svg class="diagram practice-diagram" viewBox="0 0 ' + VB_W + ' ' + VB_H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Practice whiteboard">';
+
+          atoms.forEach(function (a) {
+            out += '<g class="p-atom" data-atom="' + a.id + '">' +
+              '<circle cx="' + r2(a.x) + '" cy="' + r2(a.y) + '" r="' + a.r + '" fill="transparent" stroke="#191614" stroke-width="1.5" />' +
+              '<text class="atom-label" x="' + r2(a.x) + '" y="' + r2(a.y + 7) + '" text-anchor="middle" font-size="26" style="pointer-events:none">' + a.sym + '</text>' +
+              '<g class="p-remove" data-remove-atom="' + a.id + '">' +
+              '<circle cx="' + r2(a.x + a.r * 0.72) + '" cy="' + r2(a.y - a.r * 0.72) + '" r="9" fill="#fffdf8" stroke="#c9c1b4" stroke-width="1" />' +
+              '<text x="' + r2(a.x + a.r * 0.72) + '" y="' + r2(a.y - a.r * 0.72 + 3.5) + '" text-anchor="middle" font-size="12" fill="#6f675e" style="pointer-events:none">×</text>' +
+              '</g></g>';
+          });
+
+          electrons.forEach(function (e) { out += markSVG(e.type, e.x, e.y); });
+
+          links.forEach(function (b, i) {
+            var a1 = atoms[b.a], a2 = atoms[b.b];
+            var mx = (a1.x + a2.x) / 2, my = (a1.y + a2.y) / 2;
+            out += '<g class="p-bond" data-bond="' + i + '">' +
+              '<circle cx="' + r2(mx) + '" cy="' + r2(my) + '" r="16" fill="transparent" stroke="#2a4bd7" stroke-width="1" stroke-dasharray="2 3" opacity="0.5" />' +
+              '<title>Bond order — click to cycle (— → = → ≡)</title>' +
+              '</g>';
+          });
+
+          out += '</svg>';
+          return out;
+        }
+
+        function renderPractice() {
+          var p = state.practice;
+          var syms = p.atoms.map(function (a) { return a.sym; });
+          var assign = marksForAtoms(syms);
+          var atomsR = p.atoms.map(function (a, i) {
+            return { id: a.id, sym: a.sym, x: a.x, y: a.y, lonePairs: a.lonePairs, r: R, assign: assign[i] };
+          });
+          var idx = {};
+          p.atoms.forEach(function (a, i) { idx[a.id] = i; });
+          var links = p.bonds.map(function (b) { return { a: idx[b.a], b: idx[b.b] }; });
+          var orders = p.bonds.map(function (b) { return b.order; });
+          var lp = p.atoms.map(function (a) { return a.lonePairs; });
+          var electrons = p.atoms.length ? computeElectrons(atomsR, links, orders, lp, true) : [];
+          var formula = p.atoms.length >= 2 ? formulaOf(syms, links) : (p.atoms.length === 1 ? syms[0] : "");
+
+          document.getElementById("practice-title").textContent = formula || "Practice board";
+          document.getElementById("practice-clear").hidden = p.atoms.length === 0;
+          document.getElementById("practice-empty").hidden = p.atoms.length > 0;
+          document.getElementById("practice-controls").hidden = p.atoms.length === 0;
+          document.getElementById("practice-board").innerHTML = practiceSVG(atomsR, links, electrons);
+
+          var v = practiceValidation();
+          if (v) {
+            document.getElementById("practice-used").textContent = v.usedE;
+            document.getElementById("practice-total").textContent = v.V;
+            document.getElementById("practice-octet").textContent =
+              (v.expanded ? "Expanded octet" : "Octet / duplet") + ": " + (v.octetOk ? "✓" : "✗");
+
+            var verdict = document.getElementById("practice-verdict");
+            if (p.checked) {
+              verdict.hidden = false;
+              verdict.className = "verdict " + (v.ok ? "ok" : "bad");
+              verdict.textContent = v.ok
+                ? "Correct! All atoms satisfy the octet / duplet and every outermost shell electron is used."
+                : "Not yet — adjust bond orders (click a bond) and lone pairs (click an atom) so every atom satisfies the octet / duplet and the electron count matches the total outermost shell electrons.";
+            } else {
+              verdict.hidden = true;
+              verdict.textContent = "";
+            }
+          }
+        }
+
+        function cycleLonePairs(id) {
+          var p = state.practice;
+          p.atoms = p.atoms.map(function (a) {
+            return a.id === id ? { id: a.id, sym: a.sym, x: a.x, y: a.y, lonePairs: (a.lonePairs + 1) % 5 } : a;
+          });
+          p.checked = false;
+          renderPractice();
+        }
+
+        function removePracticeAtom(id) {
+          var p = state.practice;
+          p.atoms = p.atoms.filter(function (a) { return a.id !== id; });
+          p.bonds = recomputeBonds(p.atoms, p.bonds.filter(function (b) { return b.a !== id && b.b !== id; }));
+          p.checked = false;
+          renderPractice();
+        }
+
+        function cycleBond(index) {
+          var p = state.practice;
+          if (!p.bonds[index]) return;
+          p.bonds = p.bonds.map(function (b, i) {
+            return i === index ? { a: b.a, b: b.b, order: (b.order % 3) + 1 } : b;
+          });
+          p.checked = false;
+          renderPractice();
+        }
+
+        function clearPractice() {
+          state.practice = { atoms: [], bonds: [], checked: false };
+          dragState = null;
+          renderPractice();
+        }
+
+        function toSvg(clientX, clientY) {
+          var svg = document.querySelector("#practice-board svg");
+          if (!svg) return { x: 0, y: 0 };
+          var pt = svg.createSVGPoint();
+          pt.x = clientX;
+          pt.y = clientY;
+          var m = svg.getScreenCTM();
+          if (!m) return { x: 0, y: 0 };
+          var p = pt.matrixTransform(m.inverse());
+          return { x: p.x, y: p.y };
+        }
+
+        function onDragMove(e) {
+          if (!dragState) return;
+          var p = toSvg(e.clientX, e.clientY);
+          if (Math.hypot(p.x - dragState.sx, p.y - dragState.sy) > 5) dragState.moved = true;
+          if (!dragState.moved) return;
+          var atoms = state.practice.atoms.map(function (a) {
+            if (a.id !== dragState.id) return a;
+            return { id: a.id, sym: a.sym, x: p.x - dragState.offX, y: p.y - dragState.offY, lonePairs: a.lonePairs };
+          });
+          state.practice.atoms = atoms;
+          state.practice.bonds = recomputeBonds(atoms, state.practice.bonds);
+          state.practice.checked = false;
+          renderPractice();
+        }
+
+        function onDragEnd() {
+          window.removeEventListener("pointermove", onDragMove);
+          window.removeEventListener("pointerup", onDragEnd);
+          window.removeEventListener("pointercancel", onDragEnd);
+          document.body.style.userSelect = "";
+          var d = dragState;
+          dragState = null;
+          if (d && !d.moved) cycleLonePairs(d.id);
+        }
+
+        function startDrag(id, e) {
+          var atom = state.practice.atoms.filter(function (a) { return a.id === id; })[0];
+          if (!atom) return;
+          if (e.preventDefault) e.preventDefault();
+          var p = toSvg(e.clientX, e.clientY);
+          dragState = { id: id, offX: p.x - atom.x, offY: p.y - atom.y, sx: p.x, sy: p.y, moved: false };
+          window.addEventListener("pointermove", onDragMove, { passive: false });
+          window.addEventListener("pointerup", onDragEnd);
+          window.addEventListener("pointercancel", onDragEnd);
+          document.body.style.userSelect = "none";
+        }
+
+        /* ============================================================
+           Wiring
+           ============================================================ */
+
+        function setMode(mode) {
+          state.mode = mode;
+          var buttons = document.querySelectorAll(".switch button");
+          for (var i = 0; i < buttons.length; i++) {
+            buttons[i].setAttribute("aria-selected", buttons[i].getAttribute("data-mode") === mode ? "true" : "false");
+          }
+          document.getElementById("view-auto").hidden = mode !== "auto";
+          document.getElementById("view-practice").hidden = mode !== "practice";
+        }
+
+        function init() {
+          document.getElementById("palette-auto").innerHTML = paletteHTML("auto");
+          document.getElementById("palette-practice").innerHTML = paletteHTML("practice");
+
+          var buttons = document.querySelectorAll(".switch button");
+          for (var i = 0; i < buttons.length; i++) {
+            (function (btn) {
+              btn.addEventListener("click", function () { setMode(btn.getAttribute("data-mode")); });
+            })(buttons[i]);
+          }
+
+          document.addEventListener("click", function (e) {
+            var tile = e.target.closest("[data-add]");
+            if (tile) {
+              var sym = tile.getAttribute("data-add");
+              if (state.mode === "auto") addAutoAtom(sym);
+              else addPracticeAtom(sym);
+              return;
+            }
+
+            var chip = e.target.closest("[data-remove-chip]");
+            if (chip) {
+              state.sandbox.splice(parseInt(chip.getAttribute("data-remove-chip"), 10), 1);
+              renderAuto();
+              return;
+            }
+
+            if (e.target.closest("[data-clear-auto]")) {
+              state.sandbox = [];
+              renderAuto();
+            }
+          });
+
+          document.addEventListener("dragstart", function (e) {
+            var tile = e.target.closest ? e.target.closest("[data-add]") : null;
+            if (!tile) return;
+            e.dataTransfer.setData("text/plain", tile.getAttribute("data-add"));
+            e.dataTransfer.effectAllowed = "copy";
+          });
+
+          var sandbox = document.getElementById("sandbox");
+          sandbox.addEventListener("dragover", function (e) {
+            e.preventDefault();
+            sandbox.classList.add("is-over");
+          });
+          sandbox.addEventListener("dragleave", function (e) {
+            if (!e.relatedTarget || !sandbox.contains(e.relatedTarget)) sandbox.classList.remove("is-over");
+          });
+          sandbox.addEventListener("drop", function (e) {
+            e.preventDefault();
+            sandbox.classList.remove("is-over");
+            var sym = e.dataTransfer.getData("text/plain");
+            if (sym && atomBySym(sym)) addAutoAtom(sym);
+          });
+
+          var board = document.getElementById("practice-board");
+          var dropArea = document.getElementById("practice-drop");
+
+          board.addEventListener("pointerdown", function (e) {
+            if (state.mode !== "practice") return;
+            var remove = e.target.closest("[data-remove-atom]");
+            if (remove) {
+              e.preventDefault();
+              e.stopPropagation();
+              removePracticeAtom(remove.getAttribute("data-remove-atom"));
+              return;
+            }
+            var bond = e.target.closest("[data-bond]");
+            if (bond) {
+              e.preventDefault();
+              cycleBond(parseInt(bond.getAttribute("data-bond"), 10));
+              return;
+            }
+            var atom = e.target.closest("[data-atom]");
+            if (atom) startDrag(atom.getAttribute("data-atom"), e);
+          });
+
+          dropArea.addEventListener("dragover", function (e) { e.preventDefault(); });
+          dropArea.addEventListener("drop", function (e) {
+            e.preventDefault();
+            var sym = e.dataTransfer.getData("text/plain");
+            if (!sym || !atomBySym(sym)) return;
+            var p = toSvg(e.clientX, e.clientY);
+            addPracticeAtom(sym, p.x, p.y);
+          });
+
+          document.getElementById("practice-clear").addEventListener("click", clearPractice);
+          document.getElementById("practice-clear-2").addEventListener("click", clearPractice);
+          document.getElementById("practice-check").addEventListener("click", function () {
+            state.practice.checked = true;
+            renderPractice();
+          });
+
+          renderAuto();
+          renderPractice();
+        }
+
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+        else init();
+      })();
+    </script>
+  </body>
+</html>

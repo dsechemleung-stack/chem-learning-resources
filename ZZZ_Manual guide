@@ -2,6 +2,13 @@
 
 The platform now uses a **configuration-based system**. Simply add your page to the config file and the buttons will be automatically generated with topic filtering. The "Back to Index" button is also automatically injected by a shared script.
 
+Master: [src/pagesConfig.js](cci:7://file:///Users/Hugo/Desktop/chemleungmcq-platform-gamified/f4-chem-learning-resources/src/pagesConfig.js:0:0-0:0)
+
+ICON prompt: Flat vector icon of [INSERT TOPIC], simple minimalist shape design, clean geometric lines, single isolated object centered, modern UI icon aesthetic, solid flat colors, pure white background, no text, no labels, no gradient, 1:1 aspect ratio. Scientifically, theoretically correct. INSERT TOPIC
+
+ICON Name: ___-thumb.png
+
+
 ### 1. Create or Place Your HTML File
 - Put your webpage file in the project root (e.g., `your-page.html`)
 - Ensure it has a proper HTML structure with `<!DOCTYPE html>`

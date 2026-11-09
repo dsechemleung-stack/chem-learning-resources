@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IonForge - Full Standalone</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .font-display { font-family: 'Inter', sans-serif; font-weight: 700; }
+  </style>
+</head>
+<body class="bg-[#0F172A] text-slate-100 min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef } = React;
+
+    // ==========================================
+    // 1. DATA & LOGIC (From your data/ions.js)
+    // ==========================================
+    const CATIONS = [
+      { id: "li", name: "Lithium ion", formula: "Li", charge: 1, group: "1+", category: "cation", polyatomic: false },
+      { id: "na", name: "Sodium ion", formula: "Na", charge: 1, group: "1+", category: "cation", polyatomic: false },
+      { id: "k", name: "Potassium ion", formula: "K", charge: 1, group: "1+", category: "cation", polyatomic: false },
+      { id: "ag", name: "Silver ion", formula: "Ag", charge: 1, group: "1+", category: "cation", polyatomic: false },
+      { id: "h", name: "Hydrogen ion", formula: "H", charge: 1, group: "1+", category: "cation", polyatomic: false },
+      { id: "nh4", name: "Ammonium ion", formula: "NH4", charge: 1, group: "1+", category: "cation", polyatomic: true },
+      { id: "ba", name: "Barium ion", formula: "Ba", charge: 2, group: "2+", category: "cation", polyatomic: false },
+      { id: "mg", name: "Magnesium ion", formula: "Mg", charge: 2, group: "2+", category: "cation", polyatomic: false },
+      { id: "ca", name: "Calcium ion", formula: "Ca", charge: 2, group: "2+", category: "cation", polyatomic: false },
+      { id: "pb", name: "Lead(II) ion", formula: "Pb", charge: 2, group: "2+", category: "cation", polyatomic: false },
+      { id: "fe2", name: "Iron(II) ion", formula: "Fe", charge: 2, group: "2+", category: "cation", polyatomic: false },
+      { id: "cu2", name: "Copper(II) ion", formula: "Cu", charge: 2, group: "2+", category: "cation", polyatomic: false },
+      { id: "zn", name: "Zinc ion", formula: "Zn", charge: 2, group: "2+", category: "cation", polyatomic: false },
+      { id: "al", name: "Aluminium ion", formula: "Al", charge: 3, group: "3+", category: "cation", polyatomic: false },
+      { id: "fe3", name: "Iron(III) ion", formula: "Fe", charge: 3, group: "3+", category: "cation", polyatomic: false },
+    ];
+
+    const ANIONS = [
+      { id: "hyd", name: "Hydride ion", formula: "H", charge: -1, group: "1-", category: "anion", polyatomic: false },
+      { id: "f", name: "Fluoride ion", formula: "F", charge: -1, group: "1-", category: "anion", polyatomic: false },
+      { id: "cl", name: "Chloride ion", formula: "Cl", charge: -1, group: "1-", category: "anion", polyatomic: false },
+      { id: "br", name: "Bromide ion", formula: "Br", charge: -1, group: "1-", category: "anion", polyatomic: false },
+      { id: "i", name: "Iodide ion", formula: "I", charge: -1, group: "1-", category: "anion", polyatomic: false },
+      { id: "oh", name: "Hydroxide ion", formula: "OH", charge: -1, group: "1-", category: "anion", polyatomic: true },
+      { id: "no3", name: "Nitrate ion", formula: "NO3", charge: -1, group: "1-", category: "anion", polyatomic: true },
+      { id: "no2", name: "Nitrite ion", formula: "NO2", charge: -1, group: "1-", category: "anion", polyatomic: true },
+      { id: "mno4", name: "Permanganate ion", formula: "MnO4", charge: -1, group: "1-", category: "anion", polyatomic: true },
+      { id: "hco3", name: "Hydrogencarbonate ion", formula: "HCO3", charge: -1, group: "1-", category: "anion", polyatomic: true },
+      { id: "o", name: "Oxide ion", formula: "O", charge: -2, group: "2-", category: "anion", polyatomic: false },
+      { id: "s", name: "Sulphide ion", formula: "S", charge: -2, group: "2-", category: "anion", polyatomic: false },
+      { id: "so4", name: "Sulphate ion", formula: "SO4", charge: -2, group: "2-", category: "anion", polyatomic: true },
+      { id: "so3", name: "Sulphite ion", formula: "SO3", charge: -2, group: "2-", category: "anion", polyatomic: true },
+      { id: "co3", name: "Carbonate ion", formula: "CO3", charge: -2, group: "2-", category: "anion", polyatomic: true },
+      { id: "cro4", name: "Chromate ion", formula: "CrO4", charge: -2, group: "2-", category: "anion", polyatomic: true },
+      { id: "cr2o7", name: "Dichromate ion", formula: "Cr2O7", charge: -2, group: "2-", category: "anion", polyatomic: true },
+      { id: "n", name: "Nitride ion", formula: "N", charge: -3, group: "3-", category: "anion", polyatomic: false },
+      { id: "p", name: "Phosphide ion", formula: "P", charge: -3, group: "3-", category: "anion", polyatomic: false },
+      { id: "po4", name: "Phosphate ion", formula: "PO4", charge: -3, group: "3-", category: "anion", polyatomic: true },
+    ];
+
+    const ALL_IONS = [...CATIONS, ...ANIONS];
+    const CATION_CHARGES = [1, 2, 3];
+    const ANION_CHARGES = [1, 2, 3];
+    const SESSION_LENGTH = 10;
+    const DEFAULT_POOL = { cations: { enabled: true, charges: [1, 2, 3] }, anions: { enabled: true, charges: [1, 2, 3] } };
+
+    const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+    function partWithCount(ion, count) {
+      if (count === 1) return ion.formula;
+      if (ion.polyatomic) return `(${ion.formula})${count}`;
+      return `${ion.formula}${count}`;
+    }
+    function makeCompound(cation, anion) {
+      const c = Math.abs(cation.charge);
+      const a = Math.abs(anion.charge);
+      const g = gcd(c, a);
+      return partWithCount(cation, a / g) + partWithCount(anion, c / g);
+    }
+    function compoundWithCounts(cation, anion, nCation, nAnion) {
+      return partWithCount(cation, nCation) + partWithCount(anion, nAnion);
+    }
+    function stripIon(name) { return name.replace(/\s+ion$/i, "").trim(); }
+    function compoundName(cation, anion) { return `${stripIon(cation.name)} ${stripIon(anion.name).toLowerCase()}`; }
+
+    const INVALID_COMPOUND_PAIRS = new Set(["h|hyd", "h|hco3"]);
+    function isValidCompound(c, a) { return !INVALID_COMPOUND_PAIRS.has(`${c.id}|${a.id}`); }
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+      return a;
+    }
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function filterIons(pool) {
+      const cations = pool.cations.enabled ? CATIONS.filter((i) => pool.cations.charges.includes(i.charge)) : [];
+      const anions = pool.anions.enabled ? ANIONS.filter((i) => pool.anions.charges.includes(Math.abs(i.charge))) : [];
+      return { cations, anions, all: [...cations, ...anions] };
+    }
+
+    function generateQuestion(mode, poolCfg, compoundStyle = "name") {
+      const { cations, anions, all } = filterIons(poolCfg);
+      const ionPool = all.length ? all : ALL_IONS;
+
+      if (mode === "compound") {
+        const catPool = cations.length ? cations : CATIONS;
+        const anPool = anions.length ? anions : ANIONS;
+        const cation = pick(catPool);
+        const validAnions = anPool.filter((a) => isValidCompound(cation, a));
+        const anion = pick(validAnions.length ? validAnions : anPool);
+        const correctFormula = makeCompound(cation, anion);
+        const correctName = compoundName(cation, anion);
+
+        if (compoundStyle === "formula") {
+          const cc = Math.abs(cation.charge), aa = Math.abs(anion.charge), g = gcd(cc, aa);
+          const seen = new Set([correctFormula]), dist = [];
+          const combos = shuffle([[1,1],[1,2],[1,3],[2,1],[2,2],[2,3],[3,1],[3,2],[3,3]]);
+          for (const [c, a] of combos) {
+            if (c === (aa/g) && a === (cc/g)) continue;
+            const f = compoundWithCounts(cation, anion, c, a);
+            if (!seen.has(f)) { seen.add(f); dist.push({ formula: f }); }
+            if (dist.length >= 3) break;
+          }
+          return { kind: "compound", compoundStyle: "formula", cation, anion, prompt: null, options: shuffle([{ formula: correctFormula }, ...dist]), correct: correctFormula };
+        }
+
+        const seen = new Set([correctName]), dist = [];
+        const chargeVariants = CATIONS.filter((c) => c.formula === cation.formula && c.charge !== cation.charge);
+        const candidatePairs = [];
+        for (const c of chargeVariants) candidatePairs.push([c, anion]);
+        for (const a of anPool.filter((a) => a.id !== anion.id)) candidatePairs.push([cation, a]);
+        for (const [c, a] of shuffle(candidatePairs.filter(([c, a]) => isValidCompound(c, a)))) {
+          const n = compoundName(c, a);
+          if (!seen.has(n)) { seen.add(n); dist.push(n); }
+          if (dist.length >= 3) break;
+        }
+        while(dist.length < 3) { dist.push(compoundName(pick(CATIONS), pick(ANIONS))); }
+        return { kind: "compound", compoundStyle: "name", cation, anion, prompt: null, options: shuffle([correctName, ...dist]), correct: correctName };
+      }
+
+      const target = pick(ionPool);
+      if (mode === "name-to-symbol") {
+        const seen = new Set([target.formula + target.charge]), dist = [];
+        for (const i of shuffle(ionPool.filter((x) => x.id !== target.id))) {
+          const key = i.formula + i.charge;
+          if (!seen.has(key)) { seen.add(key); dist.push({ formula: i.formula, charge: i.charge }); }
+          if (dist.length >= 3) break;
+        }
+        return { kind: "name-to-symbol", prompt: target.name, options: shuffle([{ formula: target.formula, charge: target.charge }, ...dist]), correct: target.formula + target.charge };
+      }
+
+      const seen = new Set([target.name]), dist = [];
+      for (const i of shuffle(ionPool.filter((i) => i.id !== target.id))) {
+        if (!seen.has(i.name)) { seen.add(i.name); dist.push(i.name); }
+        if (dist.length >= 3) break;
+      }
+      return { kind: "symbol-to-name", prompt: { formula: target.formula, charge: target.charge }, options: shuffle([target.name, ...dist]), correct: target.name };
+    }
+
+    // ==========================================
+    // 2. INLINE ICONS & UI PRIMITIVES
+    // ==========================================
+    const Icons = {
+      Check: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+      X: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
+      Atom: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>,
+      FlaskConical: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2v7.31L2.07 19.04A2 2 0 0 0 3.73 22h16.54a2 2 0 0 0 1.66-2.96L14 9.31V2"></path><path d="M8.5 2h7"></path><path d="M14 9.31V2"></path><path d="M10 9.31V2"></path><path d="M6 14h12"></path></svg>,
+      ArrowLeftRight: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3 4 7l4 4"></path><path d="M4 7h16"></path><path d="m16 21 4-4-4-4"></path><path d="M20 17H4"></path></svg>,
+      Layers: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>,
+      Trophy: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>,
+      Flame: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>,
+      Target: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>,
+      ArrowLeft: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>,
+      RotateCcw: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>,
+      Plus: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+      ArrowRight: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+    };
+
+    const Switch = ({ checked, onCheckedChange }) => (
+      <button 
+        type="button" 
+        onClick={() => onCheckedChange(!checked)}
+        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-transparent transition-colors ${checked ? 'bg-emerald-500' : 'bg-slate-700'}`}
+      >
+        <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
+      </button>
+    );
+
+    // ==========================================
+    // 3. REACT COMPONENTS
+    // ==========================================
+    function formatCharge(charge) {
+      if (charge === 1) return "+";
+      if (charge === -1) return "−";
+      return Math.abs(charge) + (charge > 0 ? "+" : "−");
+    }
+
+    function Formula({ formula, charge, className = "", symbolSize = "" }) {
+      const nodes = [];
+      for (let i = 0; i < formula.length; i++) {
+        const ch = formula[i];
+        if (ch === "(" || ch === ")") {
+          nodes.push(<span key={i}>{ch}</span>);
+        } else if (ch >= "0" && ch <= "9") {
+          nodes.push(<sub key={i} className="font-medium">{ch}</sub>);
+        } else {
+          nodes.push(<span key={i}>{ch}</span>);
+        }
+      }
+      if (charge != null) {
+        nodes.push(<sup key="charge" className="font-medium">{formatCharge(charge)}</sup>);
+      }
+      return <span className={`font-mono ${symbolSize} ${className}`}>{nodes}</span>;
+    }
+
+    function OptionTile({ index, option, state, onSelect }) {
+      const isCompound = option && typeof option === "object" && "name" in option;
+      const isFormula = option && typeof option === "object" && "charge" in option;
+      const isFormulaOnly = option && typeof option === "object" && "formula" in option && !("charge" in option) && !("name" in option);
+      const correct = state === "correct";
+      const wrong = state === "wrong";
+      const dimmed = state === "dim";
+
+      const base = "relative w-full text-left rounded-2xl border p-5 transition-all duration-200 select-none flex items-center justify-between gap-3";
+      const tone = correct
+        ? "bg-emerald-500/15 border-emerald-400 text-emerald-50 shadow-[0_0_0_1px_#10B981_inset]"
+        : wrong
+        ? "bg-rose-500/15 border-rose-400 text-rose-50 shadow-[0_0_0_1px_#f43f5e_inset]"
+        : dimmed
+        ? "bg-slate-800/40 border-slate-700/60 text-slate-500"
+        : "bg-slate-800/60 border-slate-700 hover:border-emerald-400/60 hover:bg-slate-800 text-slate-100";
+
+      return (
+        <button
+          onClick={() => onSelect(index)}
+          disabled={state !== "idle"}
+          className={`${base} ${tone} ${correct ? "scale-[1.02]" : ""} ${wrong ? "scale-[0.99]" : ""}`}
+        >
+          <span className="flex items-center gap-3">
+            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${correct ? "bg-emerald-400 text-slate-900" : wrong ? "bg-rose-400 text-slate-900" : "bg-slate-700 text-slate-300"}`}>
+              {index + 1}
+            </span>
+            <span className="text-lg font-medium">
+              {isCompound ? (
+                <span className="flex flex-col items-start leading-tight">
+                  <span className="text-base font-semibold text-slate-50">{option.name}</span>
+                  <Formula formula={option.formula} symbolSize="text-xl" className="text-slate-400" />
+                </span>
+              ) : isFormula ? (
+                <Formula formula={option.formula} charge={option.charge} symbolSize="text-2xl" />
+              ) : isFormulaOnly ? (
+                <Formula formula={option.formula} symbolSize="text-2xl" />
+              ) : (
+                option
+              )}
+            </span>
+          </span>
+          {correct && <Icons.Check className="h-5 w-5 text-emerald-300" />}
+          {wrong && <Icons.X className="h-5 w-5 text-rose-300" />}
+        </button>
+      );
+    }
+
+    function PoolControls({ pool, onPoolChange }) {
+      const setCations = (enabled) => {
+        if (!enabled && !pool.anions.enabled) return;
+        onPoolChange({ ...pool, cations: { ...pool.cations, enabled } });
+      };
+      const setAnions = (enabled) => {
+        if (!enabled && !pool.cations.enabled) return;
+        onPoolChange({ ...pool, anions: { ...pool.anions, enabled } });
+      };
+      const toggleCat = (ch) => {
+        const charges = pool.cations.charges.includes(ch) ? pool.cations.charges.filter((c) => c !== ch) : [...pool.cations.charges, ch];
+        onPoolChange({ ...pool, cations: { ...pool.cations, charges } });
+      };
+      const toggleAn = (ch) => {
+        const charges = pool.anions.charges.includes(ch) ? pool.anions.charges.filter((c) => c !== ch) : [...pool.anions.charges, ch];
+        onPoolChange({ ...pool, anions: { ...pool.anions, charges } });
+      };
+
+      return (
+        <div>
+          <p className="mb-2 text-[0.75rem] uppercase tracking-wider text-slate-500">Question Pool</p>
+          <div className="rounded-xl border border-slate-700/60 bg-slate-800/30 p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-200">Cations</span>
+              <Switch checked={pool.cations.enabled} onCheckedChange={setCations} />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {CATION_CHARGES.map((ch) => {
+                const active = pool.cations.enabled && pool.cations.charges.includes(ch);
+                return (
+                  <button key={ch} disabled={!pool.cations.enabled} onClick={() => toggleCat(ch)} className={`rounded-lg border px-3 py-1.5 font-mono text-sm font-medium transition ${active ? "border-emerald-400 bg-emerald-400/15 text-emerald-300" : "border-slate-700 bg-slate-800/40 text-slate-500"} ${!pool.cations.enabled ? "cursor-not-allowed opacity-40" : "hover:text-slate-300"}`}>
+                    +{ch}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-2 rounded-xl border border-slate-700/60 bg-slate-800/30 p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-200">Anions</span>
+              <Switch checked={pool.anions.enabled} onCheckedChange={setAnions} />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {ANION_CHARGES.map((ch) => {
+                const active = pool.anions.enabled && pool.anions.charges.includes(ch);
+                return (
+                  <button key={ch} disabled={!pool.anions.enabled} onClick={() => toggleAn(ch)} className={`rounded-lg border px-3 py-1.5 font-mono text-sm font-medium transition ${active ? "border-blue-400 bg-blue-400/15 text-blue-300" : "border-slate-700 bg-slate-800/40 text-slate-500"} ${!pool.anions.enabled ? "cursor-not-allowed opacity-40" : "hover:text-slate-300"}`}>
+                    &minus;{ch}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const PROGRESS_MODES = [
+      { key: "name-to-symbol", label: "Name → Symbol", icon: Icons.ArrowLeftRight, hint: "Identify the ion's symbol" },
+      { key: "symbol-to-name", label: "Symbol → Name", icon: Icons.Atom, hint: "Identify the ion's name" },
+      { key: "compound", label: "Compound Synthesizer", icon: Icons.FlaskConical, hint: "Predict the compound formula" },
+    ];
+
+    function ProgressRail({ mode, setMode, pool, onPoolChange, compoundStyle, onCompoundStyleChange, mastery, streak, bestStreak, onStart, sessionActive }) {
+      return (
+        <aside className="hidden md:flex w-[280px] shrink-0 flex-col gap-6 border-r border-slate-700/60 bg-[#0F172A] p-6 h-screen sticky top-0 overflow-y-auto">
+          <div>
+            <div className="flex items-center gap-2">
+              <Icons.Layers className="h-5 w-5 text-emerald-400" />
+              <h1 className="font-display text-lg font-bold tracking-tight text-slate-50">IonForge</h1>
+            </div>
+            <p className="mt-1 text-xs uppercase tracking-wider text-slate-500">Chemistry Ion Trainer</p>
+          </div>
+          <div className="rounded-2xl border border-slate-700/60 bg-slate-800/40 p-4">
+            <p className="text-[0.75rem] uppercase tracking-wider text-slate-500">Session Mastery</p>
+            <div className="mt-2 flex items-end gap-4">
+              <div>
+                <p className="font-display text-3xl font-bold text-emerald-400">{mastery.correct}</p>
+                <p className="text-[0.7rem] uppercase tracking-wider text-slate-500">Correct</p>
+              </div>
+              <div className="ml-auto text-right">
+                <p className="font-display text-3xl font-bold text-blue-400">{streak}</p>
+                <p className="text-[0.7rem] uppercase tracking-wider text-slate-500">Streak</p>
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+              <span>Best streak</span><span className="text-slate-300">{bestStreak}</span>
+            </div>
+          </div>
+          <PoolControls pool={pool} onPoolChange={onPoolChange} />
+          <div>
+            <p className="mb-2 text-[0.75rem] uppercase tracking-wider text-slate-500">Practice Mode</p>
+            <div className="flex flex-col gap-2">
+              {PROGRESS_MODES.map((m) => {
+                const Icon = m.icon;
+                const active = mode === m.key;
+                return (
+                  <button key={m.key} onClick={() => setMode(m.key)} className={`flex items-start gap-3 rounded-xl border p-3 text-left transition ${active ? "border-emerald-400/70 bg-emerald-400/10" : "border-slate-700/60 bg-slate-800/30 hover:border-slate-600"}`}>
+                    <Icon className={`mt-0.5 h-4 w-4 ${active ? "text-emerald-400" : "text-slate-500"}`} />
+                    <span>
+                      <span className={`block text-sm font-medium ${active ? "text-slate-100" : "text-slate-300"}`}>{m.label}</span>
+                      <span className="block text-[0.7rem] text-slate-500">{m.hint}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {mode === "compound" && (
+            <div>
+              <p className="mb-2 text-[0.75rem] uppercase tracking-wider text-slate-500">Answer Type</p>
+              <div className="flex gap-2">
+                {[{ key: "name", label: "Name" }, { key: "formula", label: "Formula" }].map((s) => (
+                  <button key={s.key} onClick={() => onCompoundStyleChange(s.key)} className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition ${compoundStyle === s.key ? "border-emerald-400 bg-emerald-400/15 text-emerald-300" : "border-slate-700 bg-slate-800/40 text-slate-400 hover:text-slate-300"}`}>{s.label}</button>
+                ))}
+              </div>
+            </div>
+          )}
+          <button onClick={onStart} className="mt-auto rounded-xl bg-emerald-500 px-4 py-3 font-display text-sm font-bold text-slate-900 transition hover:bg-emerald-400">
+            {sessionActive ? "Restart Session" : "Start Session"}
+          </button>
+        </aside>
+      );
+    }
+
+    const optionKey = (opt) => typeof opt === "object" ? (opt.charge != null ? opt.formula + opt.charge : opt.formula) : opt;
+
+    function renderOption(opt) {
+      if (typeof opt === "object") {
+        if ("name" in opt && "formula" in opt) return <span className="flex flex-col items-start leading-tight"><span className="text-sm font-semibold text-slate-100">{opt.name}</span><Formula formula={opt.formula} symbolSize="text-base" className="text-slate-400" /></span>;
+        if ("charge" in opt) return <Formula formula={opt.formula} charge={opt.charge} symbolSize="text-xl" />;
+        if ("formula" in opt) return <Formula formula={opt.formula} symbolSize="text-xl" />;
+      }
+      return <span className="text-base font-medium text-slate-100">{opt}</span>;
+    }
+
+    function PromptView({ q }) {
+      if (q.kind === "name-to-symbol") return <h3 className="font-display text-2xl font-bold text-slate-50">{q.prompt}</h3>;
+      if (q.kind === "symbol-to-name") return <Formula formula={q.prompt.formula} charge={q.prompt.charge} symbolSize="text-3xl" className="text-slate-50" />;
+      return (
+        <div className="flex items-center gap-3">
+          <Formula formula={q.cation.formula} charge={q.cation.charge} symbolSize="text-2xl" className="text-emerald-300" />
+          <Icons.Plus className="h-5 w-5 text-slate-500" />
+          <Formula formula={q.anion.formula} charge={q.anion.charge} symbolSize="text-2xl" className="text-blue-300" />
+          <Icons.ArrowRight className="h-5 w-5 text-slate-600" />
+          <span className="font-display text-xl font-bold text-slate-400">?</span>
+        </div>
+      );
+    }
+
+    function ReviewPanel({ history, onBack, onRestart }) {
+      const correctCount = history.filter((h) => h.isCorrect).length;
+      return (
+        <div className="relative z-10 w-full max-w-[640px] px-4 py-6 md:py-10">
+          <div className="mb-5 flex items-center justify-between">
+            <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-medium text-slate-400 transition hover:text-slate-200">
+              <Icons.ArrowLeft className="h-4 w-4" /> Back to summary
+            </button>
+            <button onClick={onRestart} className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 font-display text-sm font-bold text-slate-900 transition hover:bg-emerald-400">
+              <Icons.RotateCcw className="h-4 w-4" /> New Session
+            </button>
+          </div>
+          <h2 className="font-display text-2xl font-bold text-slate-50">Session Review</h2>
+          <p className="mt-1 text-sm text-slate-400">{correctCount} of {history.length} correct</p>
+          <div className="mt-5 space-y-3">
+            {history.map((h, i) => {
+              const userOpt = h.question.options[h.selectedIndex];
+              const correctOpt = h.question.options.find((o) => optionKey(o) === h.question.correct);
+              return (
+                <div key={i} className={`rounded-2xl border p-5 ${h.isCorrect ? "border-emerald-500/40 bg-emerald-500/5" : "border-rose-500/40 bg-rose-500/5"}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[0.7rem] uppercase tracking-wider text-slate-500">Question {i + 1}</span>
+                    <span className={`flex items-center gap-1 text-xs font-semibold ${h.isCorrect ? "text-emerald-400" : "text-rose-400"}`}>
+                      {h.isCorrect ? <Icons.Check className="h-3.5 w-3.5" /> : <Icons.X className="h-3.5 w-3.5" />}
+                      {h.isCorrect ? "Correct" : "Incorrect"}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex min-h-[44px] items-center justify-center rounded-xl border border-slate-700/60 bg-slate-800/30 px-4 py-3">
+                    <PromptView q={h.question} />
+                  </div>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 ${h.isCorrect ? "border-emerald-500/40 bg-emerald-500/10" : "border-rose-500/40 bg-rose-500/10"}`}>
+                      <span className="text-[0.7rem] uppercase tracking-wider text-slate-500">Your answer</span><span className="ml-auto">{renderOption(userOpt)}</span>
+                    </div>
+                    {!h.isCorrect && (
+                      <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2.5">
+                        <span className="text-[0.7rem] uppercase tracking-wider text-slate-500">Correct</span><span className="ml-auto">{renderOption(correctOpt)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    function SummarySheet({ open, score, total, bestStreak, onRestart, onClose }) {
+      if (!open) return null;
+      const pct = Math.round((score / total) * 100);
+      const grade = pct >= 90 ? "Outstanding" : pct >= 70 ? "Strong" : pct >= 50 ? "Developing" : "Keep Forging";
+      return (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl border border-slate-700 bg-[#1E293B] p-7 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-400/15">
+                <Icons.Trophy className="h-6 w-6 text-emerald-400" />
+              </div>
+              <div><h2 className="font-display text-xl font-bold text-slate-50">Session Complete</h2><p className="text-sm text-slate-400">{grade}</p></div>
+            </div>
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              <div className="rounded-2xl border border-slate-700/60 bg-slate-800/40 p-4 text-center">
+                <Icons.Target className="mx-auto h-4 w-4 text-emerald-400" />
+                <p className="mt-2 font-display text-2xl font-bold text-slate-50">{score}</p><p className="text-[0.7rem] uppercase tracking-wider text-slate-500">Correct</p>
+              </div>
+              <div className="rounded-2xl border border-slate-700/60 bg-slate-800/40 p-4 text-center">
+                <Icons.Flame className="mx-auto h-4 w-4 text-blue-400" />
+                <p className="mt-2 font-display text-2xl font-bold text-slate-50">{bestStreak}</p><p className="text-[0.7rem] uppercase tracking-wider text-slate-500">Best Streak</p>
+              </div>
+              <div className="rounded-2xl border border-slate-700/60 bg-slate-800/40 p-4 text-center">
+                <p className="mt-[18px] font-display text-2xl font-bold text-slate-50">{pct}%</p><p className="text-[0.7rem] uppercase tracking-wider text-slate-500">Accuracy</p>
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button onClick={onClose} className="flex-1 rounded-xl border border-slate-700 px-4 py-3 text-sm font-medium text-slate-300 hover:bg-slate-800">Review</button>
+              <button onClick={onRestart} className="flex-1 rounded-xl bg-emerald-500 px-4 py-3 font-display text-sm font-bold text-slate-900 hover:bg-emerald-400">
+                <span className="inline-flex items-center gap-2"><Icons.RotateCcw className="h-4 w-4" /> New Session</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 4. MAIN APP SHELL
+    // ==========================================
+    function App() {
+      const [mode, setMode] = useState("name-to-symbol");
+      const [compoundStyle, setCompoundStyle] = useState("name");
+      const [pool, setPool] = useState(DEFAULT_POOL);
+      const [question, setQuestion] = useState(null);
+      const [selectedIndex, setSelectedIndex] = useState(null);
+      const [answered, setAnswered] = useState(false);
+      const [streak, setStreak] = useState(0);
+      const [bestStreak, setBestStreak] = useState(0);
+      const [mastery, setMastery] = useState({ correct: 0, total: 0 });
+      const [questionIndex, setQuestionIndex] = useState(0);
+      const [sessionActive, setSessionActive] = useState(false);
+      const [showSummary, setShowSummary] = useState(false);
+      const [showReview, setShowReview] = useState(false);
+      const [history, setHistory] = useState([]);
+      const advanceTimer = useRef(null);
+
+      const startSession = useCallback(() => {
+        if (advanceTimer.current) clearTimeout(advanceTimer.current);
+        setStreak(0);
+        setQuestionIndex(0);
+        setHistory([]);
+        setSessionActive(true);
+        setShowSummary(false);
+        setShowReview(false);
+        setSelectedIndex(null);
+        setAnswered(false);
+        setQuestion(generateQuestion(mode, pool, compoundStyle));
+      }, [mode, pool, compoundStyle]);
+
+      useEffect(() => { startSession(); }, []);
+
+      const advance = useCallback((newHistory) => {
+        if (questionIndex + 1 >= SESSION_LENGTH) {
+          setSessionActive(false);
+          setShowSummary(true);
+          return;
+        }
+        setSelectedIndex(null);
+        setAnswered(false);
+        setQuestionIndex(i => i + 1);
+        setQuestion(generateQuestion(mode, pool, compoundStyle));
+      }, [questionIndex, mode, pool, compoundStyle]);
+
+      const selectAnswer = (index) => {
+        if (answered || !question) return;
+        setSelectedIndex(index);
+        setAnswered(true);
+        
+        const isCorrect = optionKey(question.options[index]) === question.correct;
+        
+        const record = { question, selectedIndex: index, isCorrect };
+        setHistory(prev => [...prev, record]);
+
+        if (isCorrect) {
+          setStreak(s => {
+            const ns = s + 1;
+            setBestStreak(b => Math.max(b, ns));
+            return ns;
+          });
+          setMastery(m => ({ correct: m.correct + 1, total: m.total + 1 }));
+        } else {
+          setStreak(0);
+          setMastery(m => ({ ...m, total: m.total + 1 }));
+        }
+        
+        advanceTimer.current = setTimeout(() => advance([...history, record]), 1100);
+      };
+
+      const optionState = (index) => {
+        if (!answered) return "idle";
+        const isCorrectOpt = optionKey(question.options[index]) === question.correct;
+        if (isCorrectOpt) return "correct";
+        if (index === selectedIndex) return "wrong";
+        return "dim";
+      };
+
+      if (!question) return null;
+
+      return (
+        <div className="flex flex-col min-h-screen md:flex-row relative bg-[#0F172A]">
+          <ProgressRail 
+            mode={mode} setMode={setMode} pool={pool} onPoolChange={setPool} 
+            compoundStyle={compoundStyle} onCompoundStyleChange={setCompoundStyle} 
+            mastery={mastery} streak={streak} bestStreak={bestStreak} 
+            onStart={startSession} sessionActive={sessionActive} 
+          />
+
+          <main className="flex-1 flex flex-col items-center p-4 relative overflow-y-auto w-full">
+            {showReview ? (
+              <ReviewPanel history={history} onBack={() => setShowSummary(true)} onRestart={startSession} />
+            ) : (
+              <div className="w-full max-w-[640px] mt-8 md:mt-20">
+                <div className="mb-4 flex items-center justify-between text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <span>Question {questionIndex + 1} of {SESSION_LENGTH}</span>
+                  {streak >= 3 && <span className="text-orange-400 flex items-center gap-1"><Icons.Flame className="w-3.5 h-3.5"/> Streak x{streak}</span>}
+                </div>
+                
+                <div className="rounded-3xl border border-slate-700 bg-slate-800/40 p-6 md:p-10 shadow-2xl">
+                  <p className="text-center text-[0.75rem] uppercase tracking-wider text-slate-500 mb-8">
+                    {mode === "name-to-symbol" && "Identify the symbol"}
+                    {mode === "symbol-to-name" && "Identify the name"}
+                    {mode === "compound" && (compoundStyle === "name" ? "Name the compound" : "Write the formula")}
+                  </p>
+
+                  <div className="min-h-[120px] flex items-center justify-center mb-8">
+                    <PromptView q={question} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                    {question.options.map((opt, i) => (
+                      <OptionTile key={i} index={i} option={opt} state={optionState(i)} onSelect={selectAnswer} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+
+          <SummarySheet 
+            open={showSummary && !showReview} 
+            score={history.filter(h => h.isCorrect).length} 
+            total={history.length} 
+            bestStreak={bestStreak} 
+            onRestart={startSession} 
+            onClose={() => { setShowSummary(false); setShowReview(true); }} 
+          />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

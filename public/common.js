@@ -19,16 +19,16 @@
   style.textContent = `
     .auto-back-button {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      top: 16px;
+      left: 16px;
       z-index: 9999;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 10px 16px;
-      background: rgba(10, 26, 24, 0.9);
+      padding: 8px 14px;
+      background: rgba(10, 26, 24, 0.85);
       border: 1.5px solid rgba(197, 215, 181, 0.5);
-      border-radius: 12px;
+      border-radius: 10px;
       color: rgba(197, 215, 181, 0.95);
       text-decoration: none;
       font-family: 'Quicksand', -apple-system, sans-serif;
@@ -44,7 +44,7 @@
       background: rgba(197, 215, 181, 0.15);
       border-color: rgba(197, 215, 181, 0.8);
       color: #fff;
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
     }
     .auto-back-button:focus-visible {
@@ -53,9 +53,9 @@
     }
     @media (max-width: 600px) {
       .auto-back-button {
-        bottom: 16px;
-        right: 16px;
-        padding: 8px 14px;
+        top: 12px;
+        left: 12px;
+        padding: 6px 12px;
         font-size: 12px;
       }
     }

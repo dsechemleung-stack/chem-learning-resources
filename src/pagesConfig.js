@@ -22,6 +22,22 @@ export const PAGES_CONFIG = [
 
   // ── F4 PAGES ──
   {
+    file: 'electron-diagram.html',
+    level: 'F4',
+    title: 'Electron Diagrams of Molecules',
+    subtitle: 'Dot & cross lab · covalent bonding',
+    topic: 'MW1',
+    image: 'electron-diagram-thumb.png',
+  },
+  {
+    file: 'ion-forge.html',
+    level: 'F4',
+    title: 'IonForge',
+    subtitle: 'Chemistry Ion Trainer',
+    topic: 'MW1',
+    image: 'ion-forge-thumb.png',
+  },
+  {
     file: 'insoluble-layer.html',
     level: 'F4',
     title: 'Insoluble Layer Preventing Further Reaction',
@@ -63,15 +79,22 @@ export const PAGES_CONFIG = [
   },
 
   // ── F5 PAGES ──
-  // Add F5 pages here when needed
-  // Example:
-  // {
-  //   file: 'your-page.html',
-  //   level: 'F5',
-  //   title: 'Your Page Title',
-  //   subtitle: 'Brief description',
-  //   topic: 'your-topic',
-  // },
+  {
+    file: 'collision-theory.html',
+    level: 'F5',
+    title: 'Collision Theory Lab',
+    subtitle: 'Interactive simulation of collision theory',
+    topic: 'Rate',
+    image: 'collision-theory-thumb.png',
+  },
+  {
+    file: 'rate-reaction-with-syringe.html',
+    level: 'F5',
+    title: 'Rate of Reaction Lab',
+    subtitle: 'Virtual lab with gas syringe',
+    topic: 'Rate',
+    image: 'rate-reaction-with-syringe-thumb.png',
+  },
 
   // ── F6 PAGES ──
   // Add F6 pages here when needed
@@ -92,5 +115,6 @@ export const TOPIC_LABELS = {
   salts: 'Salts',
   titration: 'Titration',
   hot: 'HOT Questions',
+  rate: 'Rate of Reaction',
   // Add more topic labels as needed
 };
