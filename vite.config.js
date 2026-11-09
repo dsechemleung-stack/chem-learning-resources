@@ -17,6 +17,7 @@ export default defineConfig({
         ionForge: 'ion-forge.html',
         collisionTheory: 'collision-theory.html',
         rateReactionWithSyringe: 'rate-reaction-with-syringe.html',
+        metalQuiz: 'metals-quiz.html',
       },
     },
   },

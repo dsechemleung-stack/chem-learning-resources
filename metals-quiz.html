@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metal Reactivity Quiz</title>
+<style>
+:root{--bg:#eaf0f4;--card:#fff;--ink:#14212b;--mute:#5b6b78;--line:#d3dce3;--acc:#0f6b7a;--acc2:#e08a1e;--ok:#177a46;--okbg:#e2f4ea;--bad:#b3261e;--badbg:#fbe7e5;--chip:#f3f6f8;--hero:linear-gradient(135deg,#0d3b4a,#0f6b7a 60%,#1b8a8f);--sh:0 1px 2px rgba(20,33,43,.06),0 6px 18px rgba(20,33,43,.07)}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1419;--card:#17222a;--ink:#e8eef2;--mute:#92a3af;--line:#2c3b46;--acc:#4cc3d4;--acc2:#f0a64a;--ok:#5fd495;--okbg:#14392a;--bad:#ff8a80;--badbg:#44201d;--chip:#1e2c35;--hero:linear-gradient(135deg,#0a2a35,#0f4f5c 60%,#14666b);--sh:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:780px;margin:0 auto;padding:16px 16px 60px}
+p{margin:0 0 12px}.mute{color:var(--mute)}
+.hero{background:var(--hero);color:#fff;border-radius:20px;padding:26px 22px 22px;box-shadow:var(--sh)}
+.hero h1{font-size:2rem;margin:0 0 6px;letter-spacing:-.02em;line-height:1.15}
+.hero p{margin:0;opacity:.88}
+.strip{display:flex;gap:4px;flex-wrap:wrap;margin:18px 0 6px}
+.strip span{font-weight:700;border-radius:8px;padding:8px 0;width:calc((100% - 48px)/13);min-width:38px;text-align:center;color:#fff;font-size:.9rem;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
+.axis{display:flex;justify-content:space-between;font-size:.8rem;opacity:.85}
+.stat{display:flex;gap:10px;margin-top:14px;align-items:center}
+.stat .bar{flex:1;background:rgba(255,255,255,.25);margin:0}.stat .bar i{background:#fff}
+.mods{display:grid;gap:12px;margin-top:16px}
+.mod{display:flex;gap:14px;align-items:center;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;cursor:pointer;color:var(--ink);font:inherit;box-shadow:var(--sh);transition:transform .15s,border-color .15s}
+.mod:hover{transform:translateY(-2px);border-color:var(--c)}
+.badge{flex:none;width:52px;height:52px;border-radius:12px;background:var(--c);color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.15rem;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}
+.mod b{display:block;font-size:1.05rem}.mod small{color:var(--mute)}
+.mod .mid{flex:1;min-width:0}
+.mini{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:8px}.mini i{display:block;height:100%;background:var(--c)}
+.mod .sc{font-weight:800;color:var(--c);white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-top:5px solid var(--c,var(--acc));border-radius:16px;padding:20px;margin-top:14px;box-shadow:var(--sh)}
+.bar{height:8px;background:var(--line);border-radius:8px;overflow:hidden;margin:6px 0 16px}
+.bar i{display:block;height:100%;background:var(--c,var(--acc));width:0;transition:width .35s}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{font-size:.85rem;font-weight:700;color:var(--c);background:var(--chip);padding:5px 12px;border-radius:20px}
+.q{font-size:1.08rem;font-weight:600;margin:6px 0 14px}
+.q b{color:var(--c)}
+.obs{overflow-x:auto;margin:12px 0;border:1px solid var(--line);border-radius:12px}
+.obs table{border-collapse:collapse;width:100%;font-size:.92rem;font-weight:400;min-width:480px}
+.obs th,.obs td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.obs thead th{background:var(--chip);font-size:.85rem}
+.obs tbody th{width:64px;font-size:1.05rem;color:var(--c)}
+.obs tr:last-child th,.obs tr:last-child td{border-bottom:0}
+.obs td+td,.obs th+th,.obs th+td{border-left:1px solid var(--line)}
+.obs .nt{color:var(--mute);font-style:italic}
+.opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--chip);border:2px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:8px;font:inherit;color:inherit;cursor:pointer;transition:border-color .15s}
+.opt .lt{flex:none;width:26px;height:26px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:grid;place-items:center;font-size:.8rem}
+.opt:hover:not([disabled]){border-color:var(--c)}
+.opt.sel{border-color:var(--c);background:var(--card)}.opt.sel .lt{background:var(--c);color:#fff;border-color:var(--c)}
+.opt.ok{border-color:var(--ok);background:var(--okbg)}.opt.no{border-color:var(--bad);background:var(--badbg)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;min-height:48px;padding:8px;border-radius:12px}
+.chips.slot{border:2px dashed var(--line);margin-bottom:12px;flex-direction:column;background:var(--chip)}
+.tile{font-weight:800;border-radius:10px;padding:9px 16px;min-width:48px;text-align:center;color:#fff;border:0;cursor:pointer;font:inherit;font-weight:800;box-shadow:inset 0 -3px 0 rgba(0,0,0,.2);transition:transform .12s}
+button.tile:hover:not([disabled]){transform:translateY(-2px)}
+.slot .tile{width:100%;text-align:left}
+.row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.row:last-child{border:0}.row .m{width:50px;flex:none}
+select{flex:1;min-width:200px;padding:10px;border-radius:10px;border:2px solid var(--line);background:var(--chip);color:var(--ink);font:inherit}
+select.ok{border-color:var(--ok);background:var(--okbg)}select.no{border-color:var(--bad);background:var(--badbg)}
+.slotrow{display:flex;align-items:center;gap:10px}.slotrow small{opacity:.8}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:12px;padding:12px 22px;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+@media (prefers-color-scheme:dark){.btn{color:#0b1419}}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);box-shadow:none;padding:8px 16px}
+.btn:focus-visible,.opt:focus-visible,.tile:focus-visible,.mod:focus-visible,select:focus-visible{outline:3px solid var(--acc2);outline-offset:2px}
+.acts{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.fb{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:.95rem;animation:pop .25s}
+.fb.ok{background:var(--okbg);border-left:5px solid var(--ok)}.fb.no{background:var(--badbg);border-left:5px solid var(--bad)}
+@keyframes pop{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
+.ring{width:150px;height:150px;border-radius:50%;margin:8px auto 14px;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--line) 0)}
+.ring div{width:118px;height:118px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:2rem;font-weight:800;line-height:1.1;text-align:center}
+.ring small{display:block;font-size:.8rem;color:var(--mute);font-weight:400}
+.res{text-align:center}.res .acts{justify-content:center}
+.hint{font-size:.85rem;color:var(--mute);margin-bottom:8px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const COL={K:"#7b4bb7",Na:"#d9822b",Ca:"#c0504d",Mg:"#2c8a6b",Al:"#5f7f99",Zn:"#4a6fa5",Fe:"#8a5a3c",Pb:"#5d6770",Cu:"#b8672f",Hg:"#6e7f8d",Ag:"#8c96a0",Pt:"#7a8691",Au:"#b58a0b"};
+const S=["K","Na","Ca","Mg","Al","Zn","Fe","Pb","Cu","Hg","Ag","Pt","Au"];
+const O2=["Burns vigorously (even at room temp it tarnishes fast)","Burns brightly when heated","Forms oxide slowly on heating","No reaction"];
+const W=["Violent with cold water","Steady reaction with cold water (gas bubbles form)","Reacts with steam only (not cold water)","No reaction with water or steam"];
+const A=["Violent / explosive (too dangerous to test)","Fast reaction, many gas bubbles form (H₂)","Moderate reaction, gas bubbles form slowly (H₂)","No reaction"];
+const X=["Electrolysis of molten ore","Heating with carbon (or CO)","Heating the ore alone","Physical separation (panning)"];
+const tbl=(cols,rows)=>`<div class="obs"><table><thead><tr><th>Metal</th>${cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr><th>${r[0]}</th>${r.slice(1).map(c=>c?`<td>${c}</td>`:`<td class="nt">Not tested</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+const MC=["#7b4bb7","#d9822b","#2c8a6b","#0f6b7a","#c0504d"],SY=["K→Au","H₂","Fe","?","Au"];
+const MODS=[
+{n:"Reactivity series",d:"Order and position of the 13 metals",q:[
+{t:"order",q:"Arrange ALL the metals from MOST reactive (top) to LEAST reactive (bottom).",items:S,e:"K, Na, Ca, Mg, Al, Zn, Fe, Pb, Cu, Hg, Ag, Pt, Au."},
+{t:"order",q:"Arrange these from most to least reactive.",items:["Mg","Zn","Fe","Cu","Ag"],e:"Mg > Zn > Fe > Cu > Ag."},
+{t:"mc",q:"Which metal sits directly between aluminium and iron in the series?",o:["Magnesium","Zinc","Lead","Calcium"],a:1,e:"Order: Mg, Al, Zn, Fe — zinc is between Al and Fe."},
+{t:"mc",q:"Which is the LEAST reactive metal in the list?",o:["Platinum","Silver","Gold","Mercury"],a:2,e:"Gold is at the bottom of the series, below Pt."},
+{t:"multi",q:"Select ALL metals that are MORE reactive than zinc.",items:["Na","Mg","Fe","Al","Cu","Ca"],ans:["Na","Mg","Al","Ca"],e:"Above Zn: K, Na, Ca, Mg, Al. Fe and Cu are below."},
+{t:"mc",q:"Mg strip placed in copper(II) sulfate solution. What happens?",o:["Nothing — Mg is less reactive","Brown copper deposits; Mg dissolves","Mg deposits on copper","Gas bubbles of oxygen form"],a:1,e:"Mg is more reactive so it displaces Cu from solution: Mg + CuSO₄ → MgSO₄ + Cu."},
+{t:"tf",q:"Silver metal will displace copper from copper(II) sulfate solution.",a:false,e:"Silver is LESS reactive than copper, so no displacement happens."}
+]},
+{n:"Reactions of metals",d:"Oxygen, water/steam and dilute acids",q:[
+{t:"match",q:"Match each metal to its reaction with OXYGEN.",rows:[["K",0],["Mg",1],["Cu",2],["Au",3]],opts:O2,e:"K: very vigorous. Mg: bright white flame. Cu: black CuO slowly on heating. Au: no reaction."},
+{t:"match",q:"Match each metal to its reaction with WATER / STEAM.",rows:[["K",0],["Ca",1],["Zn",2],["Cu",3]],opts:W,e:"K violent, Ca steady (cold water). Zn reacts with steam to give ZnO + H₂. Cu does not react."},
+{t:"match",q:"Match each metal to its reaction with DILUTE HCl / dilute H₂SO₄.",rows:[["Na",0],["Mg",1],["Fe",2],["Cu",3]],opts:A,e:"The higher the metal, the faster the H₂. Mg fast, Fe moderate/slow. Cu is below hydrogen-producing metals and does not react with non-oxidising dilute acids."},
+{t:"mc",q:"Metal Y does NOT react with cold water, but gives H₂ with steam and with dilute HCl. Where is Y most likely?",o:["Potassium","Calcium","Zinc","Gold"],a:2,e:"Zn: steam and dilute acid only, not cold water."},
+{t:"multi",q:"Select ALL metals that give hydrogen with dilute hydrochloric acid.",items:["Mg","Zn","Fe","Cu","Ag"],ans:["Mg","Zn","Fe"],e:"Cu and Ag are below the hydrogen-releasing metals — no reaction with dilute HCl."},
+{t:"tf",q:"Aluminium is above zinc but reacts only slowly at first because of a protective oxide layer.",a:true,e:"Al₂O₃ coats the surface and hides its true reactivity until it is removed."},
+{t:"mc",q:"Which gas is produced when a reactive metal reacts with dilute acid or water/steam?",o:["Oxygen","Carbon dioxide","Hydrogen","Chlorine"],a:2,e:"Test: squeaky pop with a lit splint."}
+]},
+{n:"Extraction methods",d:"Link reactivity to how a metal is obtained",q:[
+{t:"match",q:"Match each metal to its usual extraction method.",rows:[["Al",0],["Zn",1],["Hg",2],["Au",3]],opts:X,e:"Very reactive: electrolysis. Mid-reactive: carbon. Hg (and Ag): heat alone, since the oxide breaks down easily. Au is found native → panning."},
+{t:"match",q:"Match each metal to its usual extraction method.",rows:[["Na",0],["Fe",1],["Ag",2],["Pt",3]],opts:X,e:"Na by electrolysis, Fe by carbon/CO in the blast furnace, Ag by heating its oxide, Pt found native."},
+{t:"mc",q:"Why is aluminium NOT extracted by heating with carbon?",o:["Carbon is too expensive","Al is more reactive than carbon, so carbon cannot take the oxygen","Al oxide is a gas","Al reacts with carbon dioxide"],a:1,e:"Carbon can only reduce oxides of metals BELOW it. Al is above carbon, so electrolysis is needed."},
+{t:"mc",q:"Zinc carbonate is the ore. Which sequence extracts zinc?",o:["Electrolyse the molten carbonate","Heat to make ZnO, then heat ZnO with carbon","Heat the carbonate alone until zinc forms","Add water then filter"],a:1,e:"ZnCO₃ → ZnO + CO₂ (heat), then ZnO + C → Zn + CO."},
+{t:"order",q:"Put these steps in order to obtain lead from lead carbonate (PbCO₃).",items:["Heat PbCO₃ strongly → PbO + CO₂","Mix PbO with carbon","Heat strongly → Pb + CO / CO₂"],e:"Decompose the carbonate, mix with carbon, then reduce."},
+{t:"mc",q:"Copper(II) carbonate is heated strongly. What is formed?",o:["Copper metal + CO₂","Copper(II) oxide + CO₂","Copper(II) oxide + hydrogen","No change"],a:1,e:"CuCO₃ → CuO + CO₂. The oxide can then be heated with carbon to give copper."},
+{t:"tf",q:"Gold can be separated from sand by panning because it is unreactive and dense.",a:true,e:"Gold occurs uncombined (native) and is much denser than sand."}
+]},
+{n:"Deducing the metal reactivity series",d:"Combine observations from several tests to rank unknown metals",q:[
+{t:"order",q:"Three unknown metals are tested with water.<br>• <b>Y</b>: no visible change with cold water; reacts with red-hot steam to give a gas and a white solid.<br>• <b>Z</b>: no reaction with cold water or steam.<br>• <b>X</b>: moves around on the surface with a hissing sound; gas bubbles form.<br>Arrange from MOST to LEAST reactive.",items:["X","Y","Z"],e:"X reacts with cold water (most reactive), Y only with steam, Z not at all."},
+{t:"order",q:"Four unknown metals are added to dilute hydrochloric acid.<br>• <b>P</b>: no change.<br>• <b>Q</b>: very rapid gas bubbles; the tube becomes hot.<br>• <b>R</b>: a few gas bubbles form slowly.<br>• <b>S</b>: steady stream of gas bubbles.<br>Arrange from MOST to LEAST reactive.",items:["Q","S","R","P"],e:"The faster the gas bubbles form, the more reactive: Q > S > R > P."},
+{t:"order",q:"Two types of test were done. Use <b>both</b> columns.<br>"+tbl(["Metal + dilute HCl","Oxide of the metal heated with carbon"],[["X","No reaction","Oxide is reduced to metal"],["Y","Gas bubbles form","No change, even when strongly heated"],["Z","Gas bubbles form","Oxide is reduced to metal"]])+"Arrange the metals from MOST to LEAST reactive.",items:["Y","Z","X"],e:"Y's oxide resists carbon, so Y is above carbon (most reactive). Z and X are both reduced by carbon, but only Z reacts with dilute HCl, so Z > X."},
+{t:"order",q:"Three types of test were done, but not every test was done on every metal. Use <b>all</b> the information.<br>"+tbl(["Metal + cold water","Oxide heated with carbon","Carbonate heated strongly"],[["P","Reacts, gas bubbles form","","Does not decompose"],["Q","No reaction","Oxide is reduced to metal",""],["R","","No change, even when strongly heated","Decomposes to oxide + CO₂"]])+"Arrange the metals from MOST to LEAST reactive.",items:["P","R","Q"],e:"P reacts with cold water and its carbonate is stable to heat, so P is the most reactive. R's oxide is not reduced by carbon, so R is above carbon. Q's oxide is reduced by carbon and Q does not react with water, so Q is lowest."},
+{t:"order",q:"Metals and oxides were tested. Use <b>all</b> the information.<br>"+tbl(["Metal heated in air","Metal + dilute HCl","Oxide heated strongly (no carbon)"],[["L","Burns with a bright flame","Gas bubbles form rapidly",""],["M","","","Decomposes to metal + oxygen"],["N","Slowly forms a black coating","No reaction",""]])+"Arrange the metals from MOST to LEAST reactive.",items:["L","N","M"],e:"L burns brightly and reacts rapidly with acid (most reactive). N reacts with oxygen to form a stable oxide but not with acid. M's oxide breaks down on heating alone, so M is the least reactive."},
+{t:"order",q:"Use <b>all</b> the information from three types of test.<br>"+tbl(["Metal + water / steam","Metal + dilute HCl","Carbonate heated strongly"],[["D","No reaction with cold water; reacts with steam","","Decomposes slowly"],["E","Reacts with cold water; gas bubbles form","","Does not decompose"],["F","","No reaction","Decomposes easily"]])+"Arrange the metals from MOST to LEAST reactive.",items:["E","D","F"],e:"E reacts with cold water and has the most heat-stable carbonate. D reacts with steam and its carbonate decomposes slowly. F does not react with acid and its carbonate decomposes easily, so F is least reactive."},
+{t:"mc",q:"The oxide of metal W cannot be reduced by heating with carbon. What does this tell you about W?",o:["W is below carbon in the series","W is above carbon in the series","W is a very unreactive metal","W is found uncombined"],a:1,e:"Carbon can only take oxygen from metals less reactive than itself. W is more reactive, so electrolysis is needed."}
+]},
+{n:"Mixed challenge",d:"Connect every idea together",q:[
+{t:"match",q:"For each metal, choose its extraction method.",rows:[["Ca",0],["Pb",1],["Cu",1],["Pt",3]],opts:X,e:"Cu oxide is reduced by heating with carbon. Ca by electrolysis, Pb by carbon, Pt is native."},
+{t:"mc",q:"Metal M burns in air when heated, reacts only slowly with steam, and gives a little H₂ with dilute HCl. Its likely extraction is…",o:["Electrolysis","Heating with carbon","Heating alone","Panning"],a:1,e:"A mid-series metal (like Zn or Fe) is extracted by carbon."},
+{t:"mc",q:"Which statement links reactivity and extraction correctly?",o:["The more reactive the metal, the easier it is to extract","The more reactive the metal, the more energy needed to extract it","Reactive metals are found uncombined","Unreactive metals need electrolysis"],a:1,e:"Reactive metals hold their oxygen tightly, so electrolysis (high energy) is needed."},
+{t:"order",q:"Order by how EASILY the metal reacts with water/steam — most easily first.",items:["Na","Mg","Fe","Cu"],e:"Na (cold water) > Mg (steam) > Fe (steam, reversible) > Cu (none)."},
+{t:"multi",q:"Select ALL metals extracted by electrolysis of the molten ore.",items:["K","Al","Zn","Mg","Hg","Na"],ans:["K","Al","Mg","Na"],e:"Metals above (or at) Al in the series need electrolysis."},
+{t:"tf",q:"Mercury can be obtained simply by heating its ore.",a:true,e:"Mercury compounds decompose easily, so heating alone releases the metal."},
+{t:"mc",q:"Magnesium reacts with oxygen, steam and dilute acid, and is extracted by…",o:["Heating alone","Panning","Electrolysis of molten MgCl₂","Heating with carbon"],a:2,e:"Mg is above carbon, so it needs electrolysis."}
+]}
+];
+const app=document.getElementById("app");
+const st={mod:null,i:0,score:MODS.map(()=>null),cur:0};
+const sh=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+const tile=m=>`<span class="tile" style="background:${COL[m]||'#4a6fa5'}">${m}</span>`;
+const isMetal=m=>m.length<=2;
+function home(){
+ st.mod=null;
+ const tot=st.score.reduce((a,b)=>a+(b||0),0),all=MODS.reduce((a,m)=>a+m.q.length,0),dn=st.score.filter(x=>x!==null).length;
+ app.innerHTML=`<div class="hero"><h1>Metal Reactivity Quiz</h1><p>Reactivity series, reactions of metals and how metals are extracted.</p>
+ <div class="strip">${S.map(m=>`<span style="background:${COL[m]}">${m}</span>`).join("")}</div>
+ <div class="axis"><span>Most reactive</span><span>Least reactive</span></div>
+ <div class="stat"><div class="bar"><i style="width:${dn/MODS.length*100}%"></i></div><b>${dn}/${MODS.length} sections</b></div></div>
+ <div class="mods">${MODS.map((m,i)=>{const sc=st.score[i];return `<button class="mod" data-i="${i}" style="--c:${MC[i]}"><span class="badge">${SY[i]}</span><span class="mid"><b>${m.n}</b><small>${m.d} · ${m.q.length} questions</small><div class="mini"><i style="width:${sc===null?0:sc/m.q.length*100}%"></i></div></span><span class="sc">${sc===null?"Start":sc+"/"+m.q.length}</span></button>`}).join("")}</div>
+ ${dn===MODS.length?`<div class="card res" style="--c:var(--acc)"><p class="mute">Total score</p><b style="font-size:2.4rem">${tot} / ${all}</b></div>`:""}`;
+ app.querySelectorAll(".mod").forEach(b=>b.onclick=()=>start(+b.dataset.i));
+}
+function start(i){st.mod=i;st.i=0;st.cur=0;question()}
+function question(){
+ const M=MODS[st.mod],Q=M.q[st.i];let got=null,locked=false;
+ const lab={mc:"Multiple choice",tf:"True or false",order:"Arrange in order",match:"Match up",multi:"Select all that apply"}[Q.t];
+ app.innerHTML=`<div class="top" style="--c:${MC[st.mod]}"><button class="btn ghost" id="back">Menu</button><span class="tag">${lab}</span></div>
+ <div class="card" style="--c:${MC[st.mod]}"><p class="mute" style="margin:0"><b>${M.n}</b> · Question ${st.i+1} of ${M.q.length} · Score ${st.cur}</p><div class="bar"><i style="width:${st.i/M.q.length*100}%"></i></div>
+ <div class="q">${Q.q}</div><div id="body"></div><div id="fb"></div>
+ <div class="acts"><button class="btn" id="chk" disabled>Check answer</button></div></div>`;
+ document.getElementById("back").onclick=home;
+ const body=document.getElementById("body"),chk=document.getElementById("chk"),fb=document.getElementById("fb");
+ const opts=Q.t==="tf"?["True","False"]:Q.o;
+ let ok=false;
+ if(Q.t==="mc"||Q.t==="tf"){
+  body.innerHTML=opts.map((o,k)=>`<button class="opt" data-k="${k}">${Q.t==="mc"?`<span class="lt">${"ABCD"[k]}</span>`:""}<span>${o}</span></button>`).join("");
+  const bs=[...body.children];
+  bs.forEach(b=>b.onclick=()=>{if(locked)return;bs.forEach(x=>x.classList.remove("sel"));b.classList.add("sel");got=+b.dataset.k;chk.disabled=false});
+  Q.judge=()=>{const c=Q.t==="tf"?(Q.a?0:1):Q.a;bs.forEach((b,k)=>{b.disabled=true;if(k===c)b.classList.add("ok");else if(k===got)b.classList.add("no")});return got===c}
+ }
+ if(Q.t==="multi"){
+  const sel=new Set();body.innerHTML=`<p class="hint">Tap every correct metal.</p><div class="chips">${sh(Q.items).map(m=>`<button class="tile" data-m="${m}" style="background:${COL[m]};opacity:.55">${m}</button>`).join("")}</div>`;
+  const bs=[...body.querySelectorAll(".tile")];
+  bs.forEach(b=>b.onclick=()=>{if(locked)return;const m=b.dataset.m;sel.has(m)?sel.delete(m):sel.add(m);b.style.opacity=sel.has(m)?1:.55;b.style.outline=sel.has(m)?"3px solid var(--acc2)":"none";chk.disabled=!sel.size});
+  Q.judge=()=>{bs.forEach(b=>{const m=b.dataset.m,c=Q.ans.includes(m);b.style.outline=c?"3px solid var(--ok)":sel.has(m)?"3px solid var(--bad)":"none";b.style.opacity=(c||sel.has(m))?1:.4;b.disabled=true});return sel.size===Q.ans.length&&Q.ans.every(m=>sel.has(m))}
+ }
+ if(Q.t==="order"){
+  const pool=sh(Q.items);let ans=[];
+  const draw=()=>{
+   body.innerHTML=`<p class="hint">Tap items to add them in order (first = top). Tap a placed item to remove it.</p>
+   <div class="chips slot" id="slot">${ans.map((x,k)=>`<button class="${isMetal(x)?'tile':'opt'}" style="${isMetal(x)?'background:'+(COL[x]||'#0f6b7a'):'margin:0'}" data-v="${x}"><span class="slotrow"><small>${k+1}.</small> ${x}</span></button>`).join("")||'<span class="mute">Your sequence appears here</span>'}</div>
+   <div class="chips">${pool.filter(x=>!ans.includes(x)).map(x=>`<button class="${isMetal(x)?'tile':'opt'}" style="${isMetal(x)?'background:'+(COL[x]||'#0f6b7a'):'margin:0;width:auto'}" data-v="${x}">${x}</button>`).join("")}</div>`;
+   body.querySelectorAll("button").forEach(b=>b.onclick=()=>{if(locked)return;const v=b.dataset.v;ans=ans.includes(v)?ans.filter(x=>x!==v):[...ans,v];draw()});
+   chk.disabled=ans.length!==Q.items.length;
+  };
+  draw();
+  Q.judge=()=>{const r=ans.join("|")===Q.items.join("|");body.querySelectorAll("#slot button").forEach((b,k)=>{b.disabled=true;b.style.outline=ans[k]===Q.items[k]?"3px solid var(--ok)":"3px solid var(--bad)"});
+   if(!r)fb.dataset.extra="Correct order: "+Q.items.map((x,k)=>(k+1)+". "+x).join("  ");return r}
+ }
+ if(Q.t==="match"){
+  body.innerHTML=Q.rows.map(([m,c],k)=>`<div class="row"><div class="m">${tile(m)}</div><select data-k="${k}"><option value="">Choose…</option>${Q.opts.map((o,j)=>`<option value="${j}">${o}</option>`).join("")}</select></div>`).join("");
+  const ss=[...body.querySelectorAll("select")];
+  ss.forEach(s=>s.onchange=()=>{chk.disabled=ss.some(x=>x.value==="")});
+  Q.judge=()=>{let all=true;ss.forEach((s,k)=>{s.disabled=true;const good=+s.value===Q.rows[k][1];s.classList.add(good?"ok":"no");if(!good){all=false;s.insertAdjacentHTML("afterend",`<small class="mute" style="max-width:40%">→ ${Q.opts[Q.rows[k][1]]}</small>`)}});return all}
+ }
+ chk.onclick=()=>{
+  if(!locked){
+   locked=true;ok=Q.judge();if(ok)st.cur++;
+   fb.innerHTML=`<div class="fb ${ok?"ok":"no"}"><b>${ok?"Correct.":"Not quite."}</b> ${Q.e}${fb.dataset.extra?`<br><small>${fb.dataset.extra}</small>`:""}</div>`;
+   chk.textContent=st.i+1<M.q.length?"Next question":"See results";
+  }else{
+   if(st.i+1<M.q.length){st.i++;question()}else results();
+  }
+ };
+}
+function results(){
+ const M=MODS[st.mod],n=M.q.length;st.score[st.mod]=st.cur;
+ const pct=Math.round(st.cur/n*100),msg=pct===100?"Perfect. You've mastered this topic.":pct>=70?"Strong work. Review the questions you missed.":pct>=40?"Getting there. Revisit the series order and try again.":"Start with the reactivity series, then retry.";
+ app.innerHTML=`<div class="card res" style="--c:${MC[st.mod]};--p:${pct}"><p class="mute">${M.n}</p><div class="ring"><div><span>${st.cur}/${n}<small>${pct}%</small></span></div></div><p>${msg}</p>
+ <div class="acts"><button class="btn" id="re">Retry section</button><button class="btn ghost" id="mn">Back to menu</button></div></div>`;
+ document.getElementById("re").onclick=()=>start(st.mod);
+ document.getElementById("mn").onclick=home;
+}
+home();
+</script>
+</body>
+</html>

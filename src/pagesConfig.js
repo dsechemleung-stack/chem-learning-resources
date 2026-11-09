@@ -46,6 +46,14 @@ export const PAGES_CONFIG = [
     image: 'insolubler-layer-thumb.png',
   },
   {
+    file: 'metals-quiz.html',
+    level: 'F4',
+    title: 'Metals: Self-Quiz',
+    subtitle: 'Check your understanding',
+    topic: 'Metals',
+    image: 'metals-quiz-thumb.png',
+  },
+  {
     file: 'neutralization-exothermic.html',
     level: 'F4',
     title: 'Neutralization: Exothermic nature',
