@@ -312,7 +312,7 @@ export default function App() {
                 marginTop: 4,
               }}
             >
-              by ChemLeung
+              by Mr Hugo Leung
             </span>
           </div>
         </div>
