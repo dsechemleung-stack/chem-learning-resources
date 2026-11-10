@@ -149,6 +149,24 @@
         .select-b:focus { outline: none; border-color: #34d399; box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25); }
         .select-ui option { background: #0f172a; color: #e2e8f0; }
 
+        /* ---------- Clickable spectator ions ---------- */
+        .spec-ion {
+            cursor: pointer;
+            padding: 1px 4px;
+            border-radius: 6px;
+            border-bottom: 1px dashed currentColor;
+            transition: background .2s ease, opacity .3s ease, text-decoration-color .3s ease;
+        }
+        .spec-ion:hover { background: rgba(255, 255, 255, 0.14); }
+        .spec-ion.cancelling { text-decoration: line-through; text-decoration-thickness: 2px; opacity: 0.25; }
+        .eq-note { margin-top: 8px; font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 400; white-space: normal; color: #94a3b8; }
+        .spec-chip {
+            cursor: pointer; display: inline-block; margin: 0 2px; padding: 1px 8px; border-radius: 9999px;
+            font-family: 'Times New Roman', Times, serif; font-size: 0.8rem; font-weight: 700;
+            background: rgba(148, 163, 184, 0.18); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        .spec-chip:hover { background: rgba(148, 163, 184, 0.32); }
+
         /* ---------- Equation & canvas ---------- */
         .eq-box {
             position: relative;
@@ -238,6 +256,10 @@
             <button id="resetBtn" class="btn btn-slate">
                 <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></span> Reset
             </button>
+            <button id="eqModeBtn" class="btn btn-teal">
+                <span class="ico"><svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg></span>
+                <span id="eqModeLbl">Equation: Full</span>
+            </button>
         </div>
     </header>
 
@@ -282,19 +304,20 @@
              <div class="flex justify-between items-start gap-3 mb-5">
                 <div>
                     <h2 class="text-xl font-bold text-emerald-300 flex items-center gap-3 flex-wrap">
-                        <span class="bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">Reaction B</span> Soluble Mobile Ions
+                        <span class="bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">Reaction B</span> <span id="titleB">Soluble Mobile Ions</span>
                     </h2>
-                    <p class="text-sm text-slate-400 mt-2">Ions dissolve, continuous reaction</p>
+                    <p id="subB" class="text-sm text-slate-400 mt-2">Ions dissolve, continuous reaction</p>
                 </div>
                 <select id="reactionBSelect" class="select-ui select-b">
                     <option value="zn_h2so4">Zn + H₂SO₄</option>
                     <option value="zn_hcl">Zn + HCl</option>
-                    <option value="caoh2_co2_aq">Ca(OH)₂(aq) + CO₂ (Limewater)</option>
+                    <option value="caoh2_co2_aq">Ca(OH)₂ + CO₂ (Limewater)</option>
+                    <option value="zn_cuso4">Zn + CuSO₄ (Displacement)</option>
                 </select>
             </div>
 
             <div class="eq-box eq-b text-base md:text-lg mb-5 whitespace-nowrap" id="eqB" style="font-family: 'Times New Roman', Times, serif;">
-                Zn(s) + H₂SO₄(aq) &rarr; Zn²⁺(aq) + SO₄²⁻(aq) + H₂(g)&uarr;
+                Zn(s) + H₂SO₄(aq) &rarr; ZnSO₄(aq) + H₂(g)&uarr;
             </div>
 
             <div class="relative flex-grow canvas-wrap">
@@ -320,6 +343,8 @@
         <div class="legend-item"><span class="legend-dot bg-amber-700"></span> Insoluble Layer</div>
         <div class="legend-item"><span class="legend-dot bg-slate-400 border border-slate-600"></span> Mobile Metal Ion (Same Color)</div>
         <div class="legend-item"><span class="legend-dot" style="background: #fef3c7; border: 1px solid #d97706"></span> CaCO₃ Precipitate</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#2563eb"></span> Cu²⁺ Ion (blue)</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#ea580c"></span> Porous Cu(s) Deposit</div>
     </footer>
 
     <script>
@@ -379,6 +404,10 @@
                 // Surface Pit segments (for eroded pitted perimeter)
                 this.pitSegments = 36;
                 this.pits = new Array(this.pitSegments).fill(0); // depth of notches at each angle
+                // Per-segment radius: soluble solids are eaten away irregularly, segment by segment
+                this.segR = new Array(this.pitSegments).fill(42);
+                this.maxSegR = 42;
+                this.fading = false;
 
                 // Crust initialization for insoluble (360 degrees)
                 this.crustSegments = 36;
@@ -622,13 +651,16 @@
                             let dy = p.y - this.metal.y;
                             let dist = Math.sqrt(dx*dx + dy*dy);
 
-                            if(dist < this.metal.radius + 20) {
+                            const reach = this.isSoluble ? this.reachFor() : 0;
+                            const outerR = this.isSoluble ? this.maxSegR : this.metal.radius;
+                            if(dist < outerR + 20 + reach) {
                                 let angle = Math.atan2(dy, dx);
                                 if(angle < 0) angle += Math.PI * 2;
                                 let segmentIdx = Math.floor((angle / (Math.PI * 2)) * this.pitSegments) % this.pitSegments;
 
                                 let currentRadius = Math.max(0, this.metal.radius - this.pits[segmentIdx]);
                                 let effectiveRadius = currentRadius;
+                                if(this.isSoluble) effectiveRadius = this.segR[segmentIdx] + reach;
                                 if(!this.isSoluble) effectiveRadius += this.crust[segmentIdx] * 12;
 
                                 if(dist <= effectiveRadius + p.radius) {
@@ -643,25 +675,11 @@
                                             if(Math.random() < 0.4) this.spawnBubble(p.x, p.y);
                                         }
                                     } else {
-                                        // Soluble Reaction Logic - Metal shrinks via pitting & detachment
-                                        if(this.metal.radius > 0) {
-                                            this.pits[segmentIdx] += 0.8 * speedMultiplier;
-                                            // Accelerated dissolution when metal is small
-                                            let shrinkRate = this.metal.radius < 10 ? 0.15 : 0.08;
-                                            // Very gradual smooth shrinking when very small
-                                            if(this.metal.radius < 3) {
-                                                shrinkRate = 0.05;
-                                            }
-                                            this.metal.radius -= shrinkRate * speedMultiplier;
-
-                                            // More bubbles when metal is small
-                                            let bubbleChance = this.metal.radius < 10 ? 0.5 : 0.3;
-                                            if(Math.random() < bubbleChance) {
-                                                this.spawnBubble(p.x, p.y);
-                                            }
-                                            if(Math.random() < 0.3) {
-                                                this.spawnIon(p.x, p.y);
-                                            }
+                                        // Soluble Reaction Logic - solid is eaten away in irregular bites and turns into mobile ions
+                                        if(this.metal.radius > 0 && !this.fading) {
+                                            this.erodeSeg(segmentIdx, 2.0 * speedMultiplier);
+                                            if(Math.random() < 0.3) this.spawnBubble(p.x, p.y);
+                                            if(Math.random() < 0.35) this.spawnIon(p.x, p.y);
                                         }
                                     }
 
@@ -675,19 +693,8 @@
                     }
                 }
 
-                // Soluble Metal Fully Dissolved Check
-                if(this.isSoluble && rxType === 'metal' && this.metal.radius <= 0.5 && this.state === 'reacting') {
-                    this.metal.radius = 0;
-                    this.state = 'completed';
-                    this.statusOverlay.innerText = "Reaction Complete";
-                    this.statusOverlay.className = "absolute top-4 right-4 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
-                }
-
-                // Change status to "Reaction complete" when metal label disappears (radius <= 5)
-                if(this.isSoluble && rxType === 'metal' && this.metal.radius <= 5 && this.metal.radius > 0.5 && this.state === 'reacting') {
-                    this.statusOverlay.innerText = "Reaction complete";
-                    this.statusOverlay.className = "absolute top-4 right-4 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
-                }
+                // Soluble metal: erode, break up the remnant, then vanish completely
+                if(this.isSoluble && rxType === 'metal' && this.state === 'reacting') this.soluteFinish();
 
                 // Update bubbles
                 this.bubbles = this.bubbles.filter(b => {
@@ -735,6 +742,73 @@
                         this.reactionStopped = true;
                         this.statusOverlay.innerText = "Reaction Stopped";
                         this.statusOverlay.className = "absolute top-4 right-4 bg-rose-600 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                    }
+                }
+            }
+
+            segIdx(angle) {
+                if(angle < 0) angle += Math.PI * 2;
+                return Math.floor((angle / (Math.PI * 2)) * this.pitSegments) % this.pitSegments;
+            }
+
+            // Radius of the irregular outline at any angle (interpolated)
+            radiusAt(angle) {
+                if(angle < 0) angle += Math.PI * 2;
+                const n = this.pitSegments, t = (angle / (Math.PI * 2)) * n;
+                const i = Math.floor(t) % n, j = (i + 1) % n, f = t - Math.floor(t);
+                return this.segR[i] * (1 - f) + this.segR[j] * f;
+            }
+
+            // Recompute mean / max radius from the per-segment radii
+            syncMetal() {
+                let sum = 0, mx = 0;
+                for(let i = 0; i < this.pitSegments; i++) {
+                    sum += this.segR[i];
+                    if(this.segR[i] > mx) mx = this.segR[i];
+                }
+                this.metal.radius = sum / this.pitSegments;
+                this.maxSegR = mx;
+            }
+
+            // Bite into one segment (and, more gently, its neighbours) -> irregular erosion
+            erodeSeg(idx, amt) {
+                const n = this.pitSegments, w = [1, 0.6, 0.3];
+                for(let k = -2; k <= 2; k++) {
+                    const j = (idx + k + n) % n;
+                    this.segR[j] = Math.max(0, this.segR[j] - amt * w[Math.abs(k)]);
+                }
+                this.syncMetal();
+            }
+
+            // Capture reach grows as the piece gets small so tiny remnants don't linger
+            reachFor() {
+                const r = this.metal.radius;
+                return r < 22 ? (22 - r) * 0.55 : 0;
+            }
+
+            // Final phase for soluble metal: the small remnant breaks up into ions and vanishes
+            soluteFinish() {
+                if(!this.fading && this.metal.radius <= 7) {
+                    this.fading = true;
+                    this.statusOverlay.innerText = "Dissolving";
+                    this.statusOverlay.className = "absolute top-4 right-4 bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                }
+                if(this.fading) {
+                    const f = Math.pow(0.9, speedMultiplier);
+                    for(let i = 0; i < this.pitSegments; i++) this.segR[i] *= f;
+                    this.syncMetal();
+                    if(Math.random() < 0.5 * speedMultiplier) {
+                        const a = Math.random() * Math.PI * 2, d = Math.random() * this.metal.radius;
+                        this.spawnIon(this.metal.x + Math.cos(a) * d, this.metal.y + Math.sin(a) * d);
+                        this.spawnBubble(this.metal.x + Math.cos(a) * d, this.metal.y + Math.sin(a) * d);
+                    }
+                    if(this.maxSegR < 0.8) {
+                        this.segR.fill(0);
+                        this.syncMetal();
+                        this.metal.radius = 0;
+                        this.state = 'completed';
+                        this.statusOverlay.innerText = "Reaction Complete";
+                        this.statusOverlay.className = "absolute top-4 right-4 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
                     }
                 }
             }
@@ -857,7 +931,7 @@
                     this.ctx.restore();
 
                     // Ca2+ ion label
-                    if(this.ions.length > 3) {
+                    if(showIons && this.ions.length > 3) {
                         let sample = this.ions[0];
                         this.ctx.strokeStyle = '#94a3b8';
                         this.ctx.lineWidth = 1;
@@ -924,7 +998,7 @@
                     for(let i = 0; i <= this.pitSegments; i++) {
                         let idx = i % this.pitSegments;
                         let angle = (idx / this.pitSegments) * Math.PI * 2;
-                        let r = Math.max(0, this.metal.radius - Math.min(this.pits[idx], 8)); // Pitted notches
+                        let r = (this.isSoluble && rxType === 'metal') ? this.segR[idx] : Math.max(0, this.metal.radius - Math.min(this.pits[idx], 8)); // Pitted notches
                         let px = this.metal.x + Math.cos(angle) * r;
                         let py = this.metal.y + Math.sin(angle) * r;
                         if(i === 0) this.ctx.moveTo(px, py);
@@ -937,7 +1011,7 @@
                     this.ctx.stroke();
 
                     // Solid Metal Label Pointer (only if metal is large enough)
-                    if(this.metal.radius > 5) {
+                    if(this.metal.radius > 5 && !this.fading) {
                         this.ctx.strokeStyle = '#94a3b8';
                         this.ctx.lineWidth = 1;
                         this.ctx.beginPath();
@@ -1009,7 +1083,7 @@
                     });
                     this.ctx.restore();
 
-                    if(this.ions.length > 3) {
+                    if(showIons && this.ions.length > 3) {
                         let sample = this.ions[0];
                         this.ctx.strokeStyle = '#94a3b8';
                         this.ctx.beginPath();
@@ -1048,7 +1122,7 @@
                 this.ctx.restore();
 
                 // Spectator ion label: only drawn when ions actually exist (FIX)
-                if (this.rxData && this.rxData.specLbl && this.spectators.length > 0) {
+                if (showIons && this.rxData && this.rxData.specLbl && this.spectators.length > 0) {
                     let s = this.spectators[0];
                     this.ctx.strokeStyle = '#22d3ee';
                     this.ctx.beginPath();
@@ -1075,6 +1149,199 @@
                 }
             }
         }
+
+        // ===== Added: full / ionic equations =====
+        let ionicMode = false;
+
+        // Zn salts written as ZnSO4 / ZnCl2 in the full equation
+        reactions.zn_h2so4.eq = "Zn(s) + H₂SO₄(aq) &rarr; ZnSO₄(aq) + H₂(g)";
+        reactions.zn_hcl.eq   = "Zn(s) + 2HCl(aq) &rarr; ZnCl₂(aq) + H₂(g)";
+
+        const ionicEqs = {
+            ca_h2so4:     "Ca(s) + 2H⁺(aq) + SO₄²⁻(aq) &rarr; CaSO₄(s) + H₂(g)",
+            pb_h2so4:     "Pb(s) + 2H⁺(aq) + SO₄²⁻(aq) &rarr; PbSO₄(s) + H₂(g)",
+            pb_hcl:       "Pb(s) + 2H⁺(aq) + 2Cl⁻(aq) &rarr; PbCl₂(s) + H₂(g)",
+            zn_h2so4:     "Zn(s) + 2H⁺(aq) + SO₄²⁻(aq) &rarr; Zn²⁺(aq) + SO₄²⁻(aq) + H₂(g)",
+            zn_hcl:       "Zn(s) + 2H⁺(aq) + 2Cl⁻(aq) &rarr; Zn²⁺(aq) + 2Cl⁻(aq) + H₂(g)",
+            caoh2_co2_s:  "Ca(OH)₂(s) + CO₂(g) &rarr; CaCO₃(s) + H₂O(l)",
+            caoh2_co2_aq: "Ca²⁺(aq) + 2OH⁻(aq) + CO₂(g) &rarr; CaCO₃(s) + H₂O(l)",
+            zn_cuso4:     "Zn(s) + Cu²⁺(aq) + SO₄²⁻(aq) &rarr; Zn²⁺(aq) + SO₄²⁻(aq) + Cu(s)"
+        };
+
+        // ===== Added: Zn + CuSO4 displacement =====
+        reactions.zn_cuso4 = {
+            eq: "Zn(s) + CuSO₄(aq) &rarr; ZnSO₄(aq) + Cu(s)",
+            acidLbl: "CuSO₄(aq)", metalLbl: "Zn Metal", metalColor: "#94a3b8", ionColor: "#10b981",
+            crustLbl: null, ionLbl: "Mobile Zn²⁺ ions", specLbl: "SO₄²⁻", type: "displacement"
+        };
+
+        const _reset = Simulation.prototype.reset;
+        Simulation.prototype.reset = function () {
+            _reset.call(this);
+            if (this.rxData && this.rxData.type === 'displacement') this.initDisp();
+        };
+        const _update = Simulation.prototype.update;
+        Simulation.prototype.update = function () {
+            if (this.rxData && this.rxData.type === 'displacement') return this.updateDisp();
+            return _update.call(this);
+        };
+        const _draw = Simulation.prototype.draw;
+        Simulation.prototype.draw = function () {
+            if (this.rxData && this.rxData.type === 'displacement') return this.drawDisp();
+            return _draw.call(this);
+        };
+
+        Simulation.prototype.dispStatus = function (text, bg) {
+            this.statusOverlay.innerText = text;
+            this.statusOverlay.className = `absolute top-4 right-4 ${bg} text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100`;
+        };
+
+        Simulation.prototype.initDisp = function () {
+            const W = this.width, H = this.height;
+            this.cuTotal = 120;
+            this.particles = [];   // Cu²⁺ ions
+            this.spectators = [];  // SO₄²⁻ ions
+            this.ions = [];        // Zn²⁺ ions (created as Zn dissolves)
+            this.dispCu = [];      // Cu(s) pieces: attached, falling or settled
+            const mk = r => ({ x: 10 + Math.random() * (W - 20), y: 100 + Math.random() * (H - 110),
+                               vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, radius: r });
+            for (let i = 0; i < this.cuTotal; i++) { this.particles.push(mk(3.5)); this.spectators.push(mk(4)); }
+        };
+
+        Simulation.prototype.dispProduct = function (x, y, ang, canStick) {
+            const m = this.metal, nx = Math.cos(ang), ny = Math.sin(ang);
+            const R = this.radiusAt(ang);
+            // Zn²⁺ leaves the surface as a mobile ion
+            this.ions.push({ x: m.x + nx * (R + 4), y: m.y + ny * (R + 4),
+                             vx: nx * 1.5 + (Math.random() - 0.5), vy: ny * 1.5 + (Math.random() - 0.5), radius: 3.5 });
+            // Cu deposits only as sparse, porous clumps (spaced apart, capped in number)
+            const att = this.dispCu.filter(c => c.attached);
+            const ok = canStick && R > 3 && att.length < 12 && att.every(c =>
+                Math.abs(Math.atan2(Math.sin(c.angle - ang), Math.cos(c.angle - ang))) > 0.5);
+            this.dispCu.push({ angle: ang, x: x, y: y, r: 3 + Math.random() * 2, attached: ok,
+                               life: 150 + Math.random() * 350, vy: 0.4 + Math.random() * 0.5, settled: false });
+        };
+
+        Simulation.prototype.updateDisp = function () {
+            const m = this.metal, sp = speedMultiplier, W = this.width, H = this.height;
+
+            if (this.state === 'dropping') {
+                m.y += 6 * sp;
+                if (m.y >= m.targetY) { m.y = m.targetY; this.state = 'reacting'; this.dispStatus('Reacting', 'bg-emerald-500'); }
+            }
+
+            [this.particles, this.spectators, this.ions].forEach(arr => arr.forEach(p => {
+                p.x += p.vx * sp; p.y += p.vy * sp;
+                if (p.x < 10 || p.x > W - 10) p.vx *= -1;
+                if (p.y < 85 || p.y > H - 10) p.vy *= -1;
+            }));
+
+            if (this.state === 'reacting') {
+                if (!this.fading) {
+                    const reach = this.reachFor() + 6; // Cu²⁺ is drawn to the Zn surface
+                    this.particles = this.particles.filter(p => {
+                        const dx = p.x - m.x, dy = p.y - m.y, d = Math.hypot(dx, dy) || 1;
+                        if (d > this.maxSegR + p.radius + reach + 2) return true;
+                        const ang = Math.atan2(dy, dx), idx = this.segIdx(ang);
+                        if (d > this.segR[idx] + p.radius + reach || Math.random() > 0.5) return true;
+                        // Zn is eaten away in an irregular bite; Cu²⁺ is consumed
+                        this.dispProduct(p.x, p.y, ang, true);
+                        this.erodeSeg(idx, 5 * (0.7 + 0.6 * Math.random()));
+                        return false;
+                    });
+                }
+
+                // Small remnant (or no Cu²⁺ left): break up into Zn²⁺ and vanish
+                if (!this.fading && (m.radius <= 7 || this.particles.length <= 12)) {
+                    this.fading = true; this.dispStatus('Dissolving', 'bg-amber-500');
+                }
+                if (this.fading) {
+                    const f = Math.pow(0.9, sp);
+                    for (let i = 0; i < this.pitSegments; i++) this.segR[i] *= f;
+                    this.syncMetal();
+                    if (Math.random() < 0.5 * sp) {
+                        const a = Math.random() * Math.PI * 2, dd = Math.random() * m.radius;
+                        this.ions.push({ x: m.x + Math.cos(a) * dd, y: m.y + Math.sin(a) * dd,
+                                         vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, radius: 3.5 });
+                    }
+                    if (this.maxSegR < 0.8) {
+                        this.segR.fill(0); this.syncMetal(); m.radius = 0;
+                        this.state = 'completed'; this.dispStatus('Reaction Complete', 'bg-emerald-600');
+                    }
+                }
+            }
+
+            // Copper: sits on the irregular Zn surface, flakes off when its zinc is gone, then sinks
+            this.dispCu.forEach(c => {
+                if (c.attached) {
+                    c.life -= sp;
+                    const R = this.radiusAt(c.angle);
+                    if (this.fading || R < 2 || c.life <= 0) c.attached = false;
+                    else {
+                        c.x = m.x + Math.cos(c.angle) * (R + c.r * 0.5);
+                        c.y = m.y + Math.sin(c.angle) * (R + c.r * 0.5);
+                    }
+                } else if (!c.settled) {
+                    c.y += c.vy * sp; c.x += (Math.random() - 0.5) * 0.6;
+                    if (c.y >= this.height - 8 - Math.random() * 6) { c.y = Math.min(c.y, this.height - 6); c.settled = true; }
+                }
+            });
+        };
+
+        Simulation.prototype.drawDisp = function () {
+            const c = this.ctx, m = this.metal, W = this.width, H = this.height;
+            const op = showIons ? 1 : 0.15;
+            const frac = this.cuTotal ? this.particles.length / this.cuTotal : 0;
+            c.clearRect(0, 0, W, H);
+
+            // Solution: blue fades as Cu²⁺ is used up
+            c.fillStyle = 'rgba(186,230,253,0.15)'; c.fillRect(0, 80, W, H);
+            c.fillStyle = `rgba(37,99,235,${0.4 * frac})`; c.fillRect(0, 80, W, H);
+            c.beginPath(); c.moveTo(0, 80); c.lineTo(W, 80);
+            c.strokeStyle = 'rgba(125,211,252,0.8)'; c.lineWidth = 2; c.stroke();
+            c.fillStyle = '#fff'; c.font = 'bold 16px Inter';
+            c.fillText((frac > 0.3 && this.state !== 'completed' ? 'CuSO₄(aq)' : 'ZnSO₄(aq)') + ' Solution', 15, 105);
+
+            const lab = (x, y, dx, dy, t, col) => {
+                c.strokeStyle = col; c.lineWidth = 1; c.beginPath();
+                c.moveTo(x, y); c.lineTo(x + dx, y + dy); c.lineTo(x + dx + (dx > 0 ? 20 : -20), y + dy); c.stroke();
+                c.fillStyle = '#fff'; c.font = '12px Inter'; c.textAlign = dx > 0 ? 'left' : 'right';
+                c.fillText(t, x + dx + (dx > 0 ? 24 : -24), y + dy + 4); c.textAlign = 'left';
+            };
+            const dot = (arr, fill, stroke) => { c.save(); c.globalAlpha = op; c.fillStyle = fill; c.strokeStyle = stroke; c.lineWidth = 0.5;
+                arr.forEach(p => { c.beginPath(); c.arc(p.x, p.y, p.radius, 0, Math.PI * 2); c.fill(); c.stroke(); }); c.restore(); };
+
+            // Zinc piece: irregular outline, eaten away segment by segment
+            if (this.state !== 'idle' && m.radius > 0) {
+                c.fillStyle = '#94a3b8'; c.beginPath();
+                for (let i = 0; i <= this.pitSegments; i++) {
+                    const idx = i % this.pitSegments, a = (idx / this.pitSegments) * Math.PI * 2, r = this.segR[idx];
+                    const px = m.x + Math.cos(a) * r, py = m.y + Math.sin(a) * r;
+                    if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+                }
+                c.closePath(); c.fill();
+                c.strokeStyle = '#475569'; c.lineWidth = 1.5; c.stroke();
+                if (m.radius > 5 && !this.fading) lab(m.x, m.y, 45, -55, 'Zn Metal', '#94a3b8');
+            }
+
+            // Porous copper clusters (small dots with gaps, never a continuous layer)
+            c.fillStyle = '#ea580c'; c.strokeStyle = '#7c2d12'; c.lineWidth = 0.5;
+            this.dispCu.forEach(k => {
+                [[0, 0, 1], [k.r * 0.8, -k.r * 0.3, 0.7], [-k.r * 0.6, k.r * 0.4, 0.6]].forEach(([ox, oy, s]) => {
+                    c.beginPath(); c.arc(k.x + ox, k.y + oy, k.r * 0.6 * s + 0.8, 0, Math.PI * 2); c.fill(); c.stroke();
+                });
+            });
+            const a = this.dispCu.find(k => k.attached);
+            if (a) lab(a.x, a.y, -45, 50, 'Porous Cu(s) deposit', '#fb923c');
+            else { const s = this.dispCu.find(k => k.settled); if (s && this.dispCu.filter(k => k.settled).length > 8) lab(s.x, s.y, -40, -45, 'Cu(s) sediment', '#fb923c'); }
+
+            dot(this.particles, '#2563eb', '#93c5fd');
+            dot(this.ions, '#10b981', '#3f3f46');
+            dot(this.spectators, '#06b6d4', '#06b6d4');
+            if (showIons && this.particles.length > 3) lab(this.particles[0].x, this.particles[0].y, -35, -25, 'Cu²⁺ ions', '#93c5fd');
+            if (showIons && this.ions.length > 3) lab(this.ions[0].x, this.ions[0].y, -40, 40, 'Mobile Zn²⁺ ions', '#34d399');
+            if (showIons && this.spectators.length > 0) lab(this.spectators[0].x, this.spectators[0].y, 30, 30, 'Mobile SO₄²⁻ ions', '#22d3ee');
+        };
 
         // --- Global Controller ---
         let simA, simB;
@@ -1107,12 +1374,57 @@
             animationId = requestAnimationFrame(loop);
         }
 
+// ===== Added: click spectator ions to cancel them (net ionic equation) =====
+        const removedIons = { A: new Set(), B: new Set() };
+        const lastEqKey = { A: null, B: null };
+
+        function renderEq(side, key) {
+            const box = document.getElementById('eq' + side);
+            if (!ionicMode) { box.innerHTML = reactions[key].eq; return; }
+            if (lastEqKey[side] !== key) { removedIons[side].clear(); lastEqKey[side] = key; }
+
+            const [lhs, rhs] = ionicEqs[key].split(' &rarr; ');
+            const L = lhs.split(' + '), R = rhs.split(' + ');
+            const isSpec = t => /\(aq\)$/.test(t) && L.includes(t) && R.includes(t); // same ion on both sides
+            const removed = removedIons[side];
+            const fmt = t => isSpec(t) ? `<span class="spec-ion" data-term="${t}">${t}</span>` : t;
+            const side2html = arr => arr.filter(t => !removed.has(t)).map(fmt).join(' + ');
+
+            let html = side2html(L) + ' &rarr; ' + side2html(R);
+            const specs = L.filter(isSpec);
+            if (removed.size) {
+                html += `<div class="eq-note">Net ionic equation. Cancelled spectator ions (click to restore): ` +
+                        [...removed].map(t => `<span class="spec-chip" data-restore="${t}">${t} &#10005;</span>`).join(' ') + `</div>`;
+            } else if (specs.length) {
+                html += `<div class="eq-note">Tip: click an ion that appears on both sides (underlined) to cancel it.</div>`;
+            }
+            box.innerHTML = html;
+        }
+
+        ['A', 'B'].forEach(side => {
+            document.getElementById('eq' + side).addEventListener('click', e => {
+                const ion = e.target.closest('.spec-ion');
+                const chip = e.target.closest('.spec-chip');
+                const key = document.getElementById('reaction' + side + 'Select').value;
+                if (ion) {
+                    const term = ion.dataset.term;
+                    document.getElementById('eq' + side).querySelectorAll('.spec-ion').forEach(el => {
+                        if (el.dataset.term === term) el.classList.add('cancelling');
+                    });
+                    setTimeout(() => { removedIons[side].add(term); renderEq(side, key); }, 350);
+                } else if (chip) {
+                    removedIons[side].delete(chip.dataset.restore);
+                    renderEq(side, key);
+                }
+            });
+        });
+
         function updateEquations() {
             const valA = document.getElementById('reactionASelect').value;
             const valB = document.getElementById('reactionBSelect').value;
 
-            document.getElementById('eqA').innerHTML = reactions[valA].eq;
-            document.getElementById('eqB').innerHTML = reactions[valB].eq;
+            renderEq('A', valA);
+            renderEq('B', valB);
 
             // Update observation text for Reaction A
             const obsA = document.getElementById('obsA');
@@ -1126,9 +1438,16 @@
             const obsB = document.getElementById('obsB');
             if(valB === 'caoh2_co2_aq') {
                 obsB.innerHTML = '<strong>Observation:</strong> When CO₂ gas reacts with aqueous Ca(OH)₂ (limewater), the CaCO₃ precipitate forms as white powder particles throughout the solution. The reaction continues until all Ca²⁺ ions are consumed.';
+            } else if(valB === 'zn_cuso4') {
+                obsB.innerHTML = '<strong>Observation:</strong> Zn is more reactive than Cu, so Zn dissolves as Zn²⁺ and the zinc piece shrinks. Cu²⁺ ions gain electrons and deposit as Cu(s), but only as loose, porous clumps with gaps, so they cannot seal the zinc surface. Cu²⁺ keeps reaching the zinc, copper flakes fall away, and the blue colour fades as Cu²⁺ is used up.';
             } else {
                 obsB.innerHTML = '<strong>Observation:</strong> The product formed (e.g., ZnSO₄) is highly soluble in water. It immediately dissociates into mobile ions that drift away into the bulk solution. The metal surface remains continuously exposed to the acid until it is fully consumed.';
             }
+
+            // Reaction B heading depends on what the solid does
+            const cu = valB === 'zn_cuso4';
+            document.getElementById('titleB').textContent = cu ? 'Loosely Attached Solids' : 'Soluble Mobile Ions';
+            document.getElementById('subB').textContent = cu ? 'Porous Cu deposit cannot seal the zinc, reaction continues' : 'Ions dissolve, continuous reaction';
 
             simA.setReaction(valA);
             simB.setReaction(valB);
@@ -1156,6 +1475,13 @@
             simB.reset();
         });
 
+        // Added: full <-> ionic equation toggle
+        document.getElementById('eqModeBtn').addEventListener('click', () => {
+            ionicMode = !ionicMode;
+            document.getElementById('eqModeLbl').textContent = ionicMode ? 'Equation: Ionic' : 'Equation: Full';
+            updateEquations();
+        });
+
         document.getElementById('reactionASelect').addEventListener('change', () => {
             updateEquations();
             simA.reset();
@@ -1170,7 +1496,7 @@
         // Start
         init();
         });
-        
+
     </script>
 </body>
 </html>

@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metal-Acid Reaction Dynamics: Insoluble vs Soluble</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #070b16;
+            --panel: rgba(15, 23, 42, 0.72);
+            --panel-border: rgba(148, 163, 184, 0.16);
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(900px 500px at 12% -5%, rgba(99, 102, 241, 0.22), transparent 60%),
+                radial-gradient(800px 500px at 100% 0%, rgba(16, 185, 129, 0.14), transparent 60%),
+                radial-gradient(700px 500px at 50% 110%, rgba(244, 63, 94, 0.12), transparent 60%),
+                linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+            background-size: auto, auto, auto, 36px 36px, 36px 36px;
+            background-attachment: fixed;
+        }
+
+        h1, h2 { font-family: 'Space Grotesk', 'Inter', sans-serif; letter-spacing: -0.02em; }
+
+        /* ---------- Title ---------- */
+        .title-gradient {
+            background: linear-gradient(100deg, #ffffff 10%, #c7d2fe 45%, #6ee7b7 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* ---------- Panels ---------- */
+        .glass-panel {
+            position: relative;
+            background: var(--panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .card-a::before, .card-b::before {
+            content: "";
+            position: absolute;
+            left: 24px; right: 24px; top: 0;
+            height: 2px;
+            border-radius: 0 0 4px 4px;
+        }
+        .card-a::before { background: linear-gradient(90deg, transparent, #fb7185, transparent); }
+        .card-b::before { background: linear-gradient(90deg, transparent, #34d399, transparent); }
+        .card-a { box-shadow: 0 24px 48px -16px rgba(0,0,0,0.55), 0 0 60px -30px rgba(244, 63, 94, 0.5), inset 0 1px 0 rgba(255,255,255,0.05); }
+        .card-b { box-shadow: 0 24px 48px -16px rgba(0,0,0,0.55), 0 0 60px -30px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255,255,255,0.05); }
+
+        /* ---------- Toolbar & buttons ---------- */
+        .toolbar {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 9999px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--panel-border);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 18px 40px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        .btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px 10px 12px;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1;
+            color: #e2e8f0;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            cursor: pointer;
+            transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+        }
+        .btn svg { width: 18px; height: 18px; fill: currentColor; }
+        .btn .ico {
+            display: inline-grid;
+            place-items: center;
+            width: 30px; height: 30px;
+            border-radius: 9999px;
+            background: rgba(148, 163, 184, 0.14);
+            transition: background .2s ease, transform .3s ease;
+        }
+        .btn:hover { transform: translateY(-1px); background: rgba(51, 65, 85, 0.85); border-color: rgba(203, 213, 225, 0.4); }
+        .btn:active { transform: translateY(0) scale(0.97); }
+        .btn:focus-visible { outline: 2px solid #a5b4fc; outline-offset: 3px; }
+
+        .btn-primary {
+            color: #fff;
+            border-color: rgba(165, 180, 252, 0.5);
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            box-shadow: 0 8px 24px -6px rgba(99, 102, 241, 0.7), inset 0 1px 0 rgba(255,255,255,0.25);
+        }
+        .btn-primary .ico { background: rgba(255, 255, 255, 0.2); }
+        .btn-primary:hover { background: linear-gradient(135deg, #7578f5 0%, #9b6cf9 100%); border-color: rgba(199, 210, 254, 0.8); box-shadow: 0 10px 30px -6px rgba(124, 92, 246, 0.85), inset 0 1px 0 rgba(255,255,255,0.3); }
+        .btn-primary:hover .ico { transform: translateY(2px); }
+
+        .btn-amber .ico { background: rgba(251, 191, 36, 0.18); color: #fbbf24; }
+        .btn-amber:hover { border-color: rgba(251, 191, 36, 0.55); }
+        .btn-teal .ico { background: rgba(45, 212, 191, 0.18); color: #2dd4bf; }
+        .btn-teal:hover { border-color: rgba(45, 212, 191, 0.55); }
+        .btn-teal:hover .ico { transform: rotate(40deg); }
+        .btn-slate .ico { background: rgba(148, 163, 184, 0.18); color: #cbd5e1; }
+        .btn-slate:hover .ico { transform: rotate(-180deg); }
+
+        /* ---------- Selects ---------- */
+        .select-ui {
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 9px 38px 9px 14px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            background-color: rgba(15, 23, 42, 0.85);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            cursor: pointer;
+            transition: border-color .2s ease, box-shadow .2s ease;
+            max-width: 100%;
+        }
+        .select-ui:hover { border-color: rgba(203, 213, 225, 0.5); }
+        .select-a:focus { outline: none; border-color: #fb7185; box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.25); }
+        .select-b:focus { outline: none; border-color: #34d399; box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25); }
+        .select-ui option { background: #0f172a; color: #e2e8f0; }
+
+        /* ---------- Equation & canvas ---------- */
+        .eq-box {
+            position: relative;
+            overflow-x: auto;
+            padding: 14px 16px;
+            border-radius: 14px;
+            text-align: center;
+            font-weight: 700;
+            background: rgba(2, 6, 23, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.45);
+            scrollbar-width: thin;
+        }
+        .eq-a { color: #fda4af; border-left: 3px solid #fb7185; }
+        .eq-b { color: #6ee7b7; border-left: 3px solid #34d399; }
+
+        .canvas-wrap {
+            position: relative;
+            padding: 6px;
+            border-radius: 20px;
+            background: linear-gradient(145deg, rgba(148,163,184,0.22), rgba(148,163,184,0.04));
+        }
+        canvas {
+            background: linear-gradient(to bottom, #1e293b 0%, #0b1120 100%);
+            border-radius: 15px;
+            box-shadow: inset 0 2px 10px 0 rgba(0, 0, 0, 0.6);
+            width: 100%;
+            height: auto;
+            max-height: 420px;
+            display: block;
+        }
+
+        .status-chip { box-shadow: 0 6px 16px -4px rgba(0,0,0,0.5); letter-spacing: 0.02em; }
+
+        /* ---------- Observations ---------- */
+        .obs {
+            padding: 14px 16px;
+            border-radius: 14px;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+        .obs strong:first-child { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; }
+        .obs-a { background: linear-gradient(90deg, rgba(244, 63, 94, 0.14), rgba(244, 63, 94, 0.04)); border: 1px solid rgba(244, 63, 94, 0.25); border-left: 3px solid #fb7185; }
+        .obs-a strong:first-child { color: #fda4af; }
+        .obs-b { background: linear-gradient(90deg, rgba(16, 185, 129, 0.14), rgba(16, 185, 129, 0.04)); border: 1px solid rgba(16, 185, 129, 0.25); border-left: 3px solid #34d399; }
+        .obs-b strong:first-child { color: #6ee7b7; }
+
+        /* ---------- Legend ---------- */
+        .legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: middle; flex-shrink: 0; }
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 14px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            transition: background .2s ease, border-color .2s ease;
+        }
+        .legend-item:hover { background: rgba(51, 65, 85, 0.8); border-color: rgba(203, 213, 225, 0.35); }
+
+        @media (max-width: 640px) {
+            .toolbar { border-radius: 24px; width: 100%; }
+            .btn { flex: 1 1 calc(50% - 10px); justify-content: flex-start; }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-10 flex flex-col items-center justify-between">
+
+    <!-- Header & Controls -->
+    <header class="w-full max-w-6xl mb-10 text-center">
+        <h1 class="title-gradient text-3xl md:text-5xl font-bold mb-4">Insoluble Layer that Stops Further Reactions</h1>
+        <p class="text-slate-400 mb-8 max-w-3xl mx-auto leading-relaxed">Observe the microscopic differences when a metal/base reacts with acid/CO₂ to form an <strong class="text-slate-100">insoluble product</strong> (which acts as a physical barrier) versus a <strong class="text-slate-100">soluble product</strong> (which dissolves, allowing continuous reaction).</p>
+
+        <div class="toolbar">
+            <button id="dropBtn" class="btn btn-primary">
+                <span class="ico"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg></span> Start Reaction
+            </button>
+            <button id="toggleIonsBtn" class="btn btn-amber">
+                <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></span> Toggle Ions Visibility
+            </button>
+            <button id="speedBtn" class="btn btn-teal">
+                <span class="ico"><svg viewBox="0 0 24 24"><path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 8.08 4.53l.85 1.27A6 6 0 0 0 7.07 16h9.86a6 6 0 0 0-2.55-9.43l.85-1.27A8 8 0 0 1 20.38 8.57zM12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 5h-2v4h4v-2h-2V7z"/></svg></span> Speed: 1x
+            </button>
+            <button id="resetBtn" class="btn btn-slate">
+                <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></span> Reset
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Comparison Area -->
+    <main class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- Reaction A: Insoluble -->
+        <section class="glass-panel card-a rounded-3xl p-6 flex flex-col">
+            <div class="flex justify-between items-start gap-3 mb-5">
+                <div>
+                    <h2 class="text-xl font-bold text-rose-300 flex items-center gap-3 flex-wrap">
+                        <span class="bg-rose-500/15 text-rose-300 border border-rose-400/30 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">Reaction A</span> Insoluble Layer
+                    </h2>
+                    <p class="text-sm text-slate-400 mt-2">Insoluble layer forms and blocks reaction</p>
+                </div>
+                <select id="reactionASelect" class="select-ui select-a">
+                    <option value="ca_h2so4">Ca + H₂SO₄</option>
+                    <option value="pb_h2so4">Pb + H₂SO₄</option>
+                    <option value="pb_hcl">Pb + HCl</option>
+                    <option value="caoh2_co2_s">Ca(OH)₂(s) + CO₂ (Slaked Lime)</option>
+                </select>
+            </div>
+
+            <div class="eq-box eq-a text-base md:text-lg mb-5 whitespace-nowrap" id="eqA" style="font-family: 'Times New Roman', Times, serif;">
+                Ca(s) + H₂SO₄(aq) &rarr; CaSO₄(s)&darr; + H₂(g)&uarr;
+            </div>
+
+            <div class="relative flex-grow canvas-wrap">
+                <canvas id="canvasA" width="500" height="400"></canvas>
+                <div id="statusA" class="status-chip absolute top-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-0">
+                    Waiting to start reaction...
+                </div>
+            </div>
+
+            <div class="obs obs-a mt-5" id="obsA">
+                <strong>Observation:</strong> As the reaction proceeds, an insoluble product (e.g., CaSO₄) quickly coats the surface of the metal. This insoluble layer prevents the acid molecules from reaching the unreacted metal beneath, causing the bubbling to stop.
+            </div>
+        </section>
+
+        <!-- Reaction B: Soluble -->
+        <section class="glass-panel card-b rounded-3xl p-6 flex flex-col">
+             <div class="flex justify-between items-start gap-3 mb-5">
+                <div>
+                    <h2 class="text-xl font-bold text-emerald-300 flex items-center gap-3 flex-wrap">
+                        <span class="bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-semibold tracking-wide">Reaction B</span> Soluble Mobile Ions
+                    </h2>
+                    <p class="text-sm text-slate-400 mt-2">Ions dissolve, continuous reaction</p>
+                </div>
+                <select id="reactionBSelect" class="select-ui select-b">
+                    <option value="zn_h2so4">Zn + H₂SO₄</option>
+                    <option value="zn_hcl">Zn + HCl</option>
+                    <option value="caoh2_co2_aq">Ca(OH)₂(aq) + CO₂ (Limewater)</option>
+                </select>
+            </div>
+
+            <div class="eq-box eq-b text-base md:text-lg mb-5 whitespace-nowrap" id="eqB" style="font-family: 'Times New Roman', Times, serif;">
+                Zn(s) + H₂SO₄(aq) &rarr; Zn²⁺(aq) + SO₄²⁻(aq) + H₂(g)&uarr;
+            </div>
+
+            <div class="relative flex-grow canvas-wrap">
+                <canvas id="canvasB" width="500" height="400"></canvas>
+                <div id="statusB" class="status-chip absolute top-4 right-4 bg-emerald-500/80 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100">
+                    Waiting to start reaction...
+                </div>
+            </div>
+
+             <div class="obs obs-b mt-5" id="obsB">
+                <strong>Observation:</strong> The product formed (e.g., ZnSO₄) is highly soluble in water. It immediately dissociates into mobile ions that drift away into the bulk solution. The metal surface remains continuously exposed to the acid until it is fully consumed.
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Legend -->
+    <footer class="w-full max-w-5xl mt-10 glass-panel rounded-3xl p-5 flex flex-wrap justify-center gap-3 text-sm">
+        <div class="legend-item"><span class="legend-dot bg-slate-400"></span> Solid Metal / Solid Base</div>
+        <div class="legend-item"><span class="legend-dot" style="background: rgba(220, 38, 38, 0.6)"></span> Acid Molecule (H⁺) / CO₂ Gas</div>
+        <div class="legend-item"><span class="legend-dot bg-cyan-500"></span> Spectator Ion (SO₄²⁻/Cl⁻/OH⁻)</div>
+        <div class="legend-item"><span class="legend-dot border border-slate-600" style="background: rgba(255,255,255,0.8)"></span> H₂ Gas Bubble</div>
+        <div class="legend-item"><span class="legend-dot bg-amber-700"></span> Insoluble Layer</div>
+        <div class="legend-item"><span class="legend-dot bg-slate-400 border border-slate-600"></span> Mobile Metal Ion (Same Color)</div>
+        <div class="legend-item"><span class="legend-dot" style="background: #fef3c7; border: 1px solid #d97706"></span> CaCO₃ Precipitate</div>
+    </footer>
+
+    <script>
+        // Global ion visibility toggle state
+        let showIons = true;
+        let speedMultiplier = 1;
+
+        // --- Reaction Data ---
+        const reactions = {
+            ca_h2so4: { eq: "Ca(s) + H₂SO₄(aq) &rarr; CaSO₄(s) + H₂(g)", acidLbl: "H₂SO₄(aq)", metalLbl: "Ca Metal", metalColor: "#fbbf24", ionColor: "#f59e0b", crustLbl: "Insoluble CaSO₄ Layer", ionLbl: null, specLbl: "SO₄²⁻", type: "metal" },
+            pb_h2so4: { eq: "Pb(s) + H₂SO₄(aq) &rarr; PbSO₄(s) + H₂(g)", acidLbl: "H₂SO₄(aq)", metalLbl: "Pb Metal", metalColor: "#a78bfa", ionColor: "#8b5cf6", crustLbl: "Insoluble PbSO₄ Layer", ionLbl: null, specLbl: "SO₄²⁻", type: "metal" },
+            pb_hcl: { eq: "Pb(s) + 2HCl(aq) &rarr; PbCl₂(s) + H₂(g)", acidLbl: "HCl(aq)", metalLbl: "Pb Metal", metalColor: "#a78bfa", ionColor: "#8b5cf6", crustLbl: "Insoluble PbCl₂ Layer", ionLbl: null, specLbl: "Cl⁻", type: "metal" },
+            zn_h2so4: { eq: "Zn(s) + H₂SO₄(aq) &rarr; Zn²⁺(aq) + SO₄²⁻(aq) + H₂(g)", acidLbl: "H₂SO₄(aq)", metalLbl: "Zn Metal", metalColor: "#34d399", ionColor: "#10b981", crustLbl: null, ionLbl: "Mobile Zn²⁺ ions", specLbl: "SO₄²⁻", type: "metal" },
+            zn_hcl: { eq: "Zn(s) + 2HCl(aq) &rarr; Zn²⁺(aq) + 2Cl⁻(aq) + H₂(g)", acidLbl: "HCl(aq)", metalLbl: "Zn Metal", metalColor: "#34d399", ionColor: "#10b981", crustLbl: null, ionLbl: "Mobile Zn²⁺ ions", specLbl: "Cl⁻", type: "metal" },
+            caoh2_co2_s: { eq: "Ca(OH)₂(s) + CO₂(g) &rarr; CaCO₃(s) + H₂O(l)", acidLbl: "CO₂(g)", metalLbl: "Ca(OH)₂(s) - Slaked Lime", metalColor: "#fcd34d", ionColor: "#fbbf24", crustLbl: "Insoluble CaCO₃ Layer", ionLbl: null, specLbl: null, type: "gas_solid" },
+            caoh2_co2_aq: { eq: "Ca(OH)₂(aq) + CO₂(g) &rarr; CaCO₃(s) + H₂O(l)", acidLbl: "CO₂(g)", metalLbl: "Ca(OH)₂(aq) - Limewater", metalColor: "#fef3c7", ionColor: "#fde68a", crustLbl: null, ionLbl: "Mobile Ca²⁺ ions", specLbl: "OH⁻", type: "gas_solution" }
+        };
+
+        // --- Core Simulation Logic ---
+        class Simulation {
+            constructor(canvasId, isSoluble, textOverlayId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.isSoluble = isSoluble;
+                this.statusOverlay = document.getElementById(textOverlayId);
+
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
+                this.rxKey = '';
+                this.rxData = null;
+
+                this.reset();
+            }
+
+            setReaction(key) {
+                this.rxKey = key;
+                this.rxData = reactions[key];
+            }
+
+            reset() {
+                this.state = 'idle'; // idle, dropping, reacting, completed
+                this.particles = [];
+                this.bubbles = [];
+                this.ions = [];
+                this.spectators = [];
+                this.precipitates = []; // For CaCO3 powder in solution
+                this.pumpCO2 = false; // For pumping CO2 gas
+
+                // Metal (starts off screen)
+                this.metal = {
+                    x: this.width / 2,
+                    y: -60,
+                    targetY: this.height / 2 + 40,
+                    radius: 42
+                };
+
+                // Surface Pit segments (for eroded pitted perimeter)
+                this.pitSegments = 36;
+                this.pits = new Array(this.pitSegments).fill(0); // depth of notches at each angle
+
+                // Crust initialization for insoluble (360 degrees)
+                this.crustSegments = 36;
+                this.crust = new Array(this.crustSegments).fill(0); // 0 to 1 (thickness)
+                this.reactionStopped = false;
+
+                this.statusOverlay.style.opacity = 1;
+                this.statusOverlay.innerText = "Awaiting Reaction";
+                this.statusOverlay.className = "absolute top-4 right-4 bg-slate-800 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+
+                const rxType = this.rxData ? this.rxData.type : 'metal';
+
+                if(rxType === 'gas_solid') {
+                    // CO2 gas particles diffusing initially
+                    for(let i=0; i<50; i++) {
+                        this.particles.push({
+                            x: Math.random() * this.width,
+                            y: Math.random() * this.height,
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            radius: 4
+                        });
+                    }
+                } else if(rxType === 'gas_solution') {
+                    // No CO2 initially - will be pumped in
+                    // Ca2+ ions in solution, avoiding the delivery tube area
+                    for(let i=0; i<100; i++) {
+                        this.ions.push({
+                            x: Math.random() * (this.width - 40) + 10,
+                            y: 100 + Math.random() * (this.height - 100),
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            radius: 3.5
+                        });
+                    }
+                    // OH- ions in solution, avoiding the delivery tube area
+                    for(let i=0; i<100; i++) {
+                        this.spectators.push({
+                            x: Math.random() * (this.width - 40) + 10,
+                            y: 100 + Math.random() * (this.height - 100),
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            radius: 3.5
+                        });
+                    }
+                } else {
+                    // Metal-acid reactions
+                    for(let i=0; i<70; i++) {
+                        this.particles.push({
+                            x: Math.random() * this.width,
+                            y: 100 + Math.random() * (this.height - 100),
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            radius: 3
+                        });
+                    }
+
+                    if(this.rxData && this.rxData.specLbl) {
+                        for(let i=0; i<30; i++) {
+                            this.spectators.push({
+                                x: Math.random() * this.width,
+                                y: 100 + Math.random() * (this.height - 100),
+                                vx: (Math.random() - 0.5) * 2,
+                                vy: (Math.random() - 0.5) * 2,
+                                radius: 4
+                            });
+                        }
+                    }
+                }
+            }
+
+            drop() {
+                if(this.state === 'idle') {
+                    const rxType = this.rxData ? this.rxData.type : 'metal';
+                    if(rxType === 'gas_solid') {
+                        // Drop solid Ca(OH)2 like metal
+                        this.state = 'dropping';
+                        this.statusOverlay.innerText = "Adding Ca(OH)₂(s)...";
+                        this.statusOverlay.className = "absolute top-4 right-4 bg-indigo-500 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                    } else if(rxType === 'gas_solution') {
+                        // Start pumping CO2 gas
+                        this.state = 'reacting';
+                        this.statusOverlay.innerText = "Pumping CO₂...";
+                        this.statusOverlay.className = "absolute top-4 right-4 bg-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                        // Start spawning CO2 from delivery tube
+                        this.pumpCO2 = true;
+                    } else {
+                        // Metal reactions need dropping
+                        this.state = 'dropping';
+                        this.statusOverlay.innerText = "Reaction Starting...";
+                        this.statusOverlay.className = "absolute top-4 right-4 bg-indigo-500 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                    }
+                }
+            }
+
+            update() {
+                const rxType = this.rxData ? this.rxData.type : 'metal';
+
+                // Handle dropping for metal and gas_solid reactions
+                if(rxType !== 'gas_solution' && this.state === 'dropping') {
+                    this.metal.y += 6 * speedMultiplier;
+                    if(this.metal.y >= this.metal.targetY) {
+                        this.metal.y = this.metal.targetY;
+                        this.state = 'reacting';
+                        if(rxType === 'gas_solid') {
+                            this.statusOverlay.innerText = "Reacting";
+                            this.statusOverlay.className = "absolute top-4 right-4 bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                        } else {
+                            this.statusOverlay.innerText = "Reacting";
+                            let bgClass = this.isSoluble ? "bg-emerald-500" : "bg-amber-500";
+                            this.statusOverlay.className = `absolute top-4 right-4 ${bgClass} text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100`;
+                        }
+                    }
+                }
+
+                // Pump CO2 for gas_solution reactions
+                if(rxType === 'gas_solution' && this.pumpCO2 && this.state === 'reacting' && this.ions.length > 0) {
+                    if(Math.random() < 0.1 * speedMultiplier) {
+                        // Spawn CO2 from delivery tube (top right) - slower rate
+                        this.particles.push({
+                            x: this.width - 50,
+                            y: 80,
+                            vx: -0.5 - Math.random() * 0.5,
+                            vy: 0.5 + Math.random() * 0.5,
+                            radius: 4
+                        });
+                    }
+                    // Change status after some CO2 is pumped (only if not completed)
+                    if(this.particles.length > 20 && this.state !== 'completed') {
+                        this.statusOverlay.innerText = "Reacting";
+                    }
+                }
+
+                // Stop pumping CO2 when all ions are consumed
+                if(rxType === 'gas_solution' && this.ions.length === 0 && this.state !== 'completed' && this.state !== 'idle') {
+                    this.pumpCO2 = false;
+                    this.state = 'completed';
+                    this.statusOverlay.innerText = "Reaction Complete";
+                    this.statusOverlay.className = "absolute top-4 right-4 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                }
+
+                // Update particles movement (always move, even in idle state)
+                this.particles.forEach(p => {
+                    p.x += p.vx * speedMultiplier;
+                    p.y += p.vy * speedMultiplier;
+                    if(p.x < 0 || p.x > this.width) p.vx *= -1;
+                    if(p.y < 80) p.vy *= -1;
+                    if(p.y > this.height) p.vy *= -1;
+                });
+
+                // Update particles based on reaction type
+                if (this.state === 'reacting' || this.state === 'completed') {
+                    if(rxType === 'gas_solid') {
+                        // CO2 gas diffusing to solid Ca(OH)2 - same logic as metal-acid insoluble
+                        this.particles.forEach(p => {
+                            if(this.metal.radius <= 0) return;
+
+                            let dx = p.x - this.metal.x;
+                            let dy = p.y - this.metal.y;
+                            let dist = Math.sqrt(dx*dx + dy*dy);
+
+                            if(dist < this.metal.radius + 20 && this.state === 'reacting') {
+                                let angle = Math.atan2(dy, dx);
+                                if(angle < 0) angle += Math.PI * 2;
+                                let segmentIdx = Math.floor((angle / (Math.PI * 2)) * this.pitSegments) % this.pitSegments;
+
+                                let currentRadius = Math.max(0, this.metal.radius - this.pits[segmentIdx]);
+                                let effectiveRadius = currentRadius + this.crust[segmentIdx] * 12;
+
+                                if(dist <= effectiveRadius + p.radius) {
+                                    // Insoluble Reaction Logic - slower for CaCO3
+                                    if(this.crust[segmentIdx] < 1) {
+                                        this.crust[segmentIdx] += 0.05 * speedMultiplier;
+                                        this.pits[segmentIdx] += 0.2 * speedMultiplier;
+                                    }
+
+                                    p.vx = (Math.random() - 0.5) * 2;
+                                    p.vy = Math.random() * 2;
+                                    p.x += p.vx;
+                                    p.y += p.vy;
+                                }
+                            }
+                        });
+                    } else if(rxType === 'gas_solution') {
+                        // CO2 gas diffusing into Ca(OH)2 solution
+                        this.particles.forEach(p => {
+                            // CO2 reacts with Ca2+ ions to form CaCO3 precipitate (only if reacting)
+                            if(this.state === 'reacting') {
+                                this.ions.forEach(ion => {
+                                    let dx = p.x - ion.x;
+                                    let dy = p.y - ion.y;
+                                    let dist = Math.sqrt(dx*dx + dy*dy);
+
+                                    if(dist < 20 && Math.random() < 0.05 * speedMultiplier) {
+                                        // Form precipitate
+                                        this.precipitates.push({
+                                            x: (p.x + ion.x) / 2,
+                                            y: (p.y + ion.y) / 2,
+                                            radius: 2 + Math.random() * 2,
+                                            vy: 0.5 + Math.random() * 0.5 // Sinking speed
+                                        });
+                                        // Remove the Ca2+ ion and CO2 particle
+                                        ion.x = -100;
+                                        p.x = -100; // Mark CO2 for removal
+                                    }
+                                });
+                            }
+                        });
+
+                        // Remove consumed ions and CO2 particles
+                        this.ions = this.ions.filter(i => i.x > 0);
+                        this.particles = this.particles.filter(p => p.x > 0);
+
+                        // Check for completion after filtering
+                        if(this.ions.length === 0 && this.state === 'reacting') {
+                            this.state = 'completed';
+                            this.pumpCO2 = false;
+                            this.statusOverlay.innerText = "Reaction Complete";
+                            this.statusOverlay.className = "absolute top-4 right-4 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                        }
+
+                        // Update precipitates - they sink to the bottom
+                        this.precipitates.forEach(p => {
+                            p.y += p.vy * speedMultiplier;
+                            if(p.y > this.height - 10) {
+                                p.y = this.height - 10;
+                                p.vy = 0;
+                            }
+                        });
+
+                        // Cap precipitates
+                        if(this.precipitates.length > 300) {
+                            this.precipitates.shift();
+                        }
+                    } else {
+                        // Metal-acid reactions
+                        this.particles.forEach(p => {
+                            if(this.metal.radius <= 0) return;
+
+                            let dx = p.x - this.metal.x;
+                            let dy = p.y - this.metal.y;
+                            let dist = Math.sqrt(dx*dx + dy*dy);
+
+                            if(dist < this.metal.radius + 20) {
+                                let angle = Math.atan2(dy, dx);
+                                if(angle < 0) angle += Math.PI * 2;
+                                let segmentIdx = Math.floor((angle / (Math.PI * 2)) * this.pitSegments) % this.pitSegments;
+
+                                let currentRadius = Math.max(0, this.metal.radius - this.pits[segmentIdx]);
+                                let effectiveRadius = currentRadius;
+                                if(!this.isSoluble) effectiveRadius += this.crust[segmentIdx] * 12;
+
+                                if(dist <= effectiveRadius + p.radius) {
+                                    let nx = dx / (dist || 1);
+                                    let ny = dy / (dist || 1);
+
+                                    if(!this.isSoluble) {
+                                        // Insoluble Reaction Logic
+                                        if(this.crust[segmentIdx] < 1) {
+                                            this.crust[segmentIdx] += 0.2 * speedMultiplier;
+                                            this.pits[segmentIdx] += 0.5 * speedMultiplier;
+                                            if(Math.random() < 0.4) this.spawnBubble(p.x, p.y);
+                                        }
+                                    } else {
+                                        // Soluble Reaction Logic - Metal shrinks via pitting & detachment
+                                        if(this.metal.radius > 0) {
+                                            this.pits[segmentIdx] += 0.8 * speedMultiplier;
+                                            // Accelerated dissolution when metal is small
+                                            let shrinkRate = this.metal.radius < 10 ? 0.15 : 0.08;
+                                            // Very gradual smooth shrinking when very small
+                                            if(this.metal.radius < 3) {
+                                                shrinkRate = 0.05;
+                                            }
+                                            this.metal.radius -= shrinkRate * speedMultiplier;
+
+                                            // More bubbles when metal is small
+                                            let bubbleChance = this.metal.radius < 10 ? 0.5 : 0.3;
+                                            if(Math.random() < bubbleChance) {
+                                                this.spawnBubble(p.x, p.y);
+                                            }
+                                            if(Math.random() < 0.3) {
+                                                this.spawnIon(p.x, p.y);
+                                            }
+                                        }
+                                    }
+
+                                    p.vx = nx * 3 + (Math.random()-0.5);
+                                    p.vy = ny * 3 + (Math.random()-0.5);
+                                    p.x += p.vx;
+                                    p.y += p.vy;
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // Soluble Metal Fully Dissolved Check
+                if(this.isSoluble && rxType === 'metal' && this.metal.radius <= 0.5 && this.state === 'reacting') {
+                    this.metal.radius = 0;
+                    this.state = 'completed';
+                    this.statusOverlay.innerText = "Reaction Complete";
+                    this.statusOverlay.className = "absolute top-4 right-4 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                }
+
+                // Change status to "Reaction complete" when metal label disappears (radius <= 5)
+                if(this.isSoluble && rxType === 'metal' && this.metal.radius <= 5 && this.metal.radius > 0.5 && this.state === 'reacting') {
+                    this.statusOverlay.innerText = "Reaction complete";
+                    this.statusOverlay.className = "absolute top-4 right-4 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                }
+
+                // Update bubbles
+                this.bubbles = this.bubbles.filter(b => {
+                    b.y -= b.vy * speedMultiplier;
+                    b.x += (Math.random() - 0.5) * 1.5;
+                    return b.y > 70;
+                });
+
+                // Update mobile metal ions (for metal and gas_solution reactions)
+                if(rxType === 'metal' || rxType === 'gas_solution') {
+                    this.ions.forEach(i => {
+                        i.x += i.vx * speedMultiplier;
+                        i.y += i.vy * speedMultiplier;
+                        // Adjust right boundary for gas_solution to avoid delivery tube
+                        let rightBound = rxType === 'gas_solution' ? this.width - 30 : this.width - 10;
+                        if(i.x < 10 || i.x > rightBound) i.vx *= -1;
+                        if(i.y < 85 || i.y > this.height - 10) i.vy *= -1;
+                    });
+                }
+
+                // Update spectators
+                this.spectators.forEach(s => {
+                    s.x += s.vx * speedMultiplier;
+                    s.y += s.vy * speedMultiplier;
+                    // Adjust right boundary for gas_solution to avoid delivery tube
+                    let rightBound = rxType === 'gas_solution' ? this.width - 30 : this.width - 10;
+                    if(s.x < 10 || s.x > rightBound) s.vx *= -1;
+                    if(s.y < 85 || s.y > this.height - 10) s.vy *= -1;
+                });
+
+                // Check reaction completion for insoluble case (only for metal reactions)
+                if(!this.isSoluble && rxType === 'metal' && this.state === 'reacting' && !this.reactionStopped) {
+                    const totalCrust = this.crust.reduce((a, b) => a + b, 0);
+                    if(totalCrust >= this.crustSegments * 0.95) {
+                        this.reactionStopped = true;
+                        this.statusOverlay.innerText = "Reaction Stopped";
+                        this.statusOverlay.className = "absolute top-4 right-4 bg-rose-600 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                    }
+                }
+
+                // Check reaction completion for gas_solid case
+                if(rxType === 'gas_solid' && this.state === 'reacting' && !this.reactionStopped) {
+                    const totalCrust = this.crust.reduce((a, b) => a + b, 0);
+                    if(totalCrust >= this.crustSegments * 0.95) {
+                        this.reactionStopped = true;
+                        this.statusOverlay.innerText = "Reaction Stopped";
+                        this.statusOverlay.className = "absolute top-4 right-4 bg-rose-600 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-opacity opacity-100";
+                    }
+                }
+            }
+
+            spawnBubble(x, y) {
+                // Spawn 1-3 bubbles at a time for more gas evolution
+                const numBubbles = 1 + Math.floor(Math.random() * 3);
+                for(let i = 0; i < numBubbles; i++) {
+                    this.bubbles.push({
+                        x: x + (Math.random() - 0.5) * 10,
+                        y: y + (Math.random() - 0.5) * 10,
+                        vy: 1.5 + Math.random() * 2,
+                        radius: 2 + Math.random() * 4
+                    });
+                }
+            }
+
+            spawnIon(x, y) {
+                if (this.ions.length < 45) { // Cap for visual clarity
+                    this.ions.push({
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 2.5,
+                        vy: (Math.random() - 0.5) * 2.5,
+                        radius: 3.5
+                    });
+                }
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+
+                const rxType = this.rxData ? this.rxData.type : 'metal';
+
+                // Opacity modifier based on toggle state
+                const ionOpacity = showIons ? 1.0 : 0.15;
+
+                if(rxType === 'gas_solid') {
+                    // No liquid background for solid Ca(OH)2
+                    // Draw CO2 gas particles
+                    this.ctx.fillStyle = '#94a3b8';
+                    this.particles.forEach(p => {
+                        this.ctx.beginPath();
+                        this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    });
+
+                    // CO2 gas label - follow a gas particle
+                    if(this.particles.length > 3) {
+                        let sample = this.particles[Math.floor(this.particles.length / 2)]; // Use middle particle for stability
+                        this.ctx.strokeStyle = '#94a3b8';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(sample.x, sample.y);
+                        this.ctx.lineTo(sample.x + 30, sample.y - 30);
+                        this.ctx.lineTo(sample.x + 80, sample.y - 30);
+                        this.ctx.stroke();
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.font = '12px Inter';
+                        this.ctx.fillText("CO₂ gas", sample.x + 85, sample.y - 35);
+                    }
+                } else if(rxType === 'gas_solution') {
+                    // Liquid background for limewater
+                    this.ctx.fillStyle = 'rgba(254, 243, 227, 0.5)';
+                    this.ctx.fillRect(0, 80, this.width, this.height);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, 80);
+                    this.ctx.lineTo(this.width, 80);
+                    this.ctx.strokeStyle = 'rgba(253, 230, 138, 0.8)';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+
+                    // Draw delivery tube
+                    this.ctx.fillStyle = '#64748b';
+                    this.ctx.fillRect(this.width - 60, 0, 20, 80);
+                    this.ctx.fillStyle = '#94a3b8';
+                    this.ctx.fillRect(this.width - 55, 70, 10, 15);
+
+                    // Solution Title Label
+                    if(this.rxData) {
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.font = 'bold 14px Inter';
+                        this.ctx.fillText(this.rxData.metalLbl, 15, 105);
+                    }
+
+                    // Draw CO2 gas particles
+                    this.ctx.fillStyle = '#94a3b8';
+                    this.particles.forEach(p => {
+                        this.ctx.beginPath();
+                        this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    });
+
+                    // CO2 gas label - fixed position near delivery tube
+                    if(this.particles.length > 3) {
+                        this.ctx.strokeStyle = '#94a3b8';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.width - 50, 100);
+                        this.ctx.lineTo(this.width - 50, 60);
+                        this.ctx.lineTo(this.width - 100, 60);
+                        this.ctx.stroke();
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.font = '12px Inter';
+                        this.ctx.fillText("CO₂ gas", this.width - 145, 55);
+                    }
+
+                    // Draw Ca2+ ions
+                    this.ctx.save();
+                    this.ctx.globalAlpha = ionOpacity;
+                    this.ctx.fillStyle = this.rxData.ionColor || '#fde68a';
+                    this.ions.forEach(i => {
+                        this.ctx.beginPath();
+                        this.ctx.arc(i.x, i.y, i.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.strokeStyle = '#3f3f46';
+                        this.ctx.lineWidth = 0.5;
+                        this.ctx.stroke();
+                    });
+                    this.ctx.restore();
+
+                    // Ca2+ ion label
+                    if(this.ions.length > 3) {
+                        let sample = this.ions[0];
+                        this.ctx.strokeStyle = '#94a3b8';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(sample.x, sample.y);
+                        this.ctx.lineTo(sample.x - 40, sample.y + 40);
+                        this.ctx.lineTo(sample.x - 80, sample.y + 40);
+                        this.ctx.stroke();
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.font = '12px Inter';
+                        this.ctx.fillText("Mobile Ca²⁺ ions", sample.x - 130, sample.y + 35);
+                    }
+
+                    // Draw CaCO3 precipitate particles
+                    this.ctx.fillStyle = '#fef3c7';
+                    this.precipitates.forEach(p => {
+                        this.ctx.beginPath();
+                        this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.strokeStyle = '#d97706';
+                        this.ctx.lineWidth = 0.5;
+                        this.ctx.stroke();
+                    });
+
+                    // Precipitate label
+                    if(this.precipitates.length > 5) {
+                        this.ctx.strokeStyle = '#d97706';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        let sample = this.precipitates[0];
+                        this.ctx.moveTo(sample.x, sample.y);
+                        this.ctx.lineTo(sample.x - 30, sample.y - 30);
+                        this.ctx.lineTo(sample.x - 80, sample.y - 30);
+                        this.ctx.stroke();
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.font = '12px Inter';
+                        this.ctx.fillText("CaCO₃ precipitate", sample.x - 180, sample.y - 35);
+                    }
+                } else {
+                    // Metal-acid reactions
+                    // Liquid background
+                    this.ctx.fillStyle = 'rgba(186, 230, 253, 0.4)';
+                    this.ctx.fillRect(0, 80, this.width, this.height);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, 80);
+                    this.ctx.lineTo(this.width, 80);
+                    this.ctx.strokeStyle = 'rgba(125, 211, 252, 0.8)';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+
+                    // Solution Title Label
+                    if(this.rxData) {
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.font = 'bold 16px Inter';
+                        this.ctx.fillText(this.rxData.acidLbl + " Solution", 15, 105);
+                    }
+                }
+
+                // Draw Solid Metal/Base Piece (with pitted/notched surface boundary) - for metal and gas_solid reactions
+                if((rxType === 'metal' || rxType === 'gas_solid') && this.state !== 'idle' && this.metal.radius > 0) {
+                    this.ctx.fillStyle = this.rxData.metalColor || '#cbd5e1';
+                    this.ctx.beginPath();
+
+                    for(let i = 0; i <= this.pitSegments; i++) {
+                        let idx = i % this.pitSegments;
+                        let angle = (idx / this.pitSegments) * Math.PI * 2;
+                        let r = Math.max(0, this.metal.radius - Math.min(this.pits[idx], 8)); // Pitted notches
+                        let px = this.metal.x + Math.cos(angle) * r;
+                        let py = this.metal.y + Math.sin(angle) * r;
+                        if(i === 0) this.ctx.moveTo(px, py);
+                        else this.ctx.lineTo(px, py);
+                    }
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    this.ctx.strokeStyle = '#475569';
+                    this.ctx.lineWidth = 1.5;
+                    this.ctx.stroke();
+
+                    // Solid Metal Label Pointer (only if metal is large enough)
+                    if(this.metal.radius > 5) {
+                        this.ctx.strokeStyle = '#94a3b8';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.metal.x, this.metal.y);
+                        this.ctx.lineTo(this.metal.x + 80, this.metal.y - 65);
+                        this.ctx.lineTo(this.metal.x + 130, this.metal.y - 65);
+                        this.ctx.stroke();
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.font = '12px Inter';
+                        this.ctx.fillText(this.rxData.metalLbl, this.metal.x + 85, this.metal.y - 70);
+                    }
+                }
+
+                // Draw Insoluble Layer (360 degrees around metal/base & pits) - for metal and gas_solid reactions
+                if((rxType === 'metal' || rxType === 'gas_solid') && this.state !== 'idle' && this.metal.radius > 0) {
+                    this.ctx.fillStyle = rxType === 'gas_solid' ? '#fef3c7' : '#b45309'; // CaCO3 or salt layer
+                    this.ctx.beginPath();
+
+                    // Outer crust edge
+                    for(let i = 0; i <= this.crustSegments; i++) {
+                        let idx = i % this.crustSegments;
+                        let angle = (idx / this.crustSegments) * Math.PI * 2;
+                        let innerR = Math.max(0, this.metal.radius - Math.min(this.pits[idx], 8));
+                        let outerR = innerR + (this.crust[idx] * 12);
+                        let px = this.metal.x + Math.cos(angle) * outerR;
+                        let py = this.metal.y + Math.sin(angle) * outerR;
+                        if(i === 0) this.ctx.moveTo(px, py);
+                        else this.ctx.lineTo(px, py);
+                    }
+
+                    // Inner edge cutout
+                    for(let i = this.crustSegments; i >= 0; i--) {
+                        let idx = i % this.crustSegments;
+                        let angle = (idx / this.crustSegments) * Math.PI * 2;
+                        let innerR = Math.max(0, this.metal.radius - Math.min(this.pits[idx], 8));
+                        let px = this.metal.x + Math.cos(angle) * innerR;
+                        let py = this.metal.y + Math.sin(angle) * innerR;
+                        this.ctx.lineTo(px, py);
+                    }
+
+                    this.ctx.closePath();
+                    this.ctx.fill();
+
+                    // Crust Pointer
+                    if(this.crust.reduce((a,b)=>a+b,0) > 2 && this.rxData.crustLbl) {
+                        this.ctx.strokeStyle = '#d97706';
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.metal.x - this.metal.radius - 8, this.metal.y);
+                        this.ctx.lineTo(this.metal.x - 80, this.metal.y + 60);
+                        this.ctx.lineTo(this.metal.x - 135, this.metal.y + 60);
+                        this.ctx.stroke();
+                        this.ctx.fillStyle = '#fcd34d';
+                        this.ctx.fillText(this.rxData.crustLbl, this.metal.x - 165, this.metal.y + 55);
+                    }
+                }
+
+                // Draw Mobile Metal Ions (Matching exact parent color) - only for metal reactions
+                if(this.isSoluble && rxType === 'metal') {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = ionOpacity;
+                    this.ctx.fillStyle = this.rxData.ionColor || '#71717a';
+                    this.ions.forEach(i => {
+                        this.ctx.beginPath();
+                        this.ctx.arc(i.x, i.y, i.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.strokeStyle = '#3f3f46';
+                        this.ctx.lineWidth = 0.5;
+                        this.ctx.stroke();
+                    });
+                    this.ctx.restore();
+
+                    if(this.ions.length > 3) {
+                        let sample = this.ions[0];
+                        this.ctx.strokeStyle = '#94a3b8';
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(sample.x, sample.y);
+                        this.ctx.lineTo(sample.x - 40, sample.y + 40);
+                        this.ctx.lineTo(sample.x - 80, sample.y + 40);
+                        this.ctx.stroke();
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.font = '12px Inter';
+                        this.ctx.fillText(this.rxData.ionLbl, sample.x - 130, sample.y + 35);
+                    }
+                }
+
+                // Draw Acid Particles (H+) with Opacity Toggle - only for metal reactions
+                if(rxType === 'metal') {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = ionOpacity;
+                    this.ctx.fillStyle = 'rgba(220, 38, 38, 0.85)';
+                    this.particles.forEach(p => {
+                        this.ctx.beginPath();
+                        this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    });
+                    this.ctx.restore();
+                }
+
+                // Draw Spectator Ions (SO42- / Cl- / OH-) with Opacity Toggle & Pointer
+                this.ctx.save();
+                this.ctx.globalAlpha = ionOpacity;
+                this.ctx.fillStyle = '#06b6d4';
+                this.spectators.forEach(s => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                this.ctx.restore();
+
+                // Spectator ion label: only drawn when ions actually exist (FIX)
+                if (this.rxData && this.rxData.specLbl && this.spectators.length > 0) {
+                    let s = this.spectators[0];
+                    this.ctx.strokeStyle = '#22d3ee';
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(s.x, s.y);
+                    this.ctx.lineTo(s.x + 30, s.y + 30);
+                    this.ctx.lineTo(s.x + 50, s.y + 30);
+                    this.ctx.stroke();
+                    this.ctx.fillStyle = '#e0f2fe';
+                    this.ctx.font = '12px Inter';
+                    this.ctx.fillText("Mobile " + this.rxData.specLbl + " ions", s.x + 55, s.y + 34);
+                }
+
+                // Draw Hydrogen Bubbles (Transparent fill, black outline, no gas labels) - only for metal reactions
+                if(rxType === 'metal') {
+                    this.ctx.strokeStyle = '#000000';
+                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                    this.ctx.lineWidth = 1.5;
+                    this.bubbles.forEach(b => {
+                        this.ctx.beginPath();
+                        this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                    });
+                }
+            }
+        }
+
+        // --- Global Controller ---
+        let simA, simB;
+        let animationId;
+        let isLooping = false;
+
+        function init() {
+            simA = new Simulation('canvasA', false, 'statusA');
+            simB = new Simulation('canvasB', true, 'statusB');
+
+            updateEquations();
+            // FIX: rebuild particles/spectators now that rxData is set
+            simA.reset();
+            simB.reset();
+            startLoop();
+        }
+
+        function startLoop() {
+            if(!isLooping) {
+                isLooping = true;
+                loop();
+            }
+        }
+
+        function loop() {
+            simA.update();
+            simA.draw();
+            simB.update();
+            simB.draw();
+            animationId = requestAnimationFrame(loop);
+        }
+
+        function updateEquations() {
+            const valA = document.getElementById('reactionASelect').value;
+            const valB = document.getElementById('reactionBSelect').value;
+
+            document.getElementById('eqA').innerHTML = reactions[valA].eq;
+            document.getElementById('eqB').innerHTML = reactions[valB].eq;
+
+            // Update observation text for Reaction A
+            const obsA = document.getElementById('obsA');
+            if(valA === 'caoh2_co2_s') {
+                obsA.innerHTML = '<strong>Observation:</strong> As CO₂ gas reacts with solid Ca(OH)₂ (slaked lime), an insoluble CaCO₃ layer forms on the surface. This insoluble layer prevents further CO₂ from reaching the unreacted Ca(OH)₂ beneath.';
+            } else {
+                obsA.innerHTML = '<strong>Observation:</strong> As the reaction proceeds, an insoluble product (e.g., CaSO₄) quickly coats the surface of the metal. This insoluble layer prevents the acid molecules from reaching the unreacted metal beneath, causing the bubbling to stop.';
+            }
+
+            // Update observation text for Reaction B
+            const obsB = document.getElementById('obsB');
+            if(valB === 'caoh2_co2_aq') {
+                obsB.innerHTML = '<strong>Observation:</strong> When CO₂ gas reacts with aqueous Ca(OH)₂ (limewater), the CaCO₃ precipitate forms as white powder particles throughout the solution. The reaction continues until all Ca²⁺ ions are consumed.';
+            } else {
+                obsB.innerHTML = '<strong>Observation:</strong> The product formed (e.g., ZnSO₄) is highly soluble in water. It immediately dissociates into mobile ions that drift away into the bulk solution. The metal surface remains continuously exposed to the acid until it is fully consumed.';
+            }
+
+            simA.setReaction(valA);
+            simB.setReaction(valB);
+        }
+
+        // --- Event Listeners ---
+        const speedIcon = '<span class="ico"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M20.38 8.57l-1.23 1.85a8 8 0 0 1-.22 7.58H5.07A8 8 0 0 1 8.08 4.53l.85 1.27A6 6 0 0 0 7.07 16h9.86a6 6 0 0 0-2.55-9.43l.85-1.27A8 8 0 0 1 20.38 8.57zM12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 5h-2v4h4v-2h-2V7z"/></svg></span>';
+
+        document.getElementById('dropBtn').addEventListener('click', () => {
+            simA.drop();
+            simB.drop();
+        });
+
+        document.getElementById('toggleIonsBtn').addEventListener('click', () => {
+            showIons = !showIons;
+        });
+
+        document.getElementById('speedBtn').addEventListener('click', () => {
+            speedMultiplier = speedMultiplier === 1 ? 2 : (speedMultiplier === 2 ? 4 : 1);
+            document.getElementById('speedBtn').innerHTML = speedIcon + ' Speed: ' + speedMultiplier + 'x';
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            simA.reset();
+            simB.reset();
+        });
+
+        document.getElementById('reactionASelect').addEventListener('change', () => {
+            updateEquations();
+            simA.reset();
+        });
+
+        document.getElementById('reactionBSelect').addEventListener('change', () => {
+            updateEquations();
+            simB.reset();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+        // Start
+        init();
+        });
+        
+    </script>
+</body>
+</html>
