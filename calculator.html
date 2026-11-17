@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CHEM IS TRY</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9eaed;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181c}}
+:root[data-theme="dark"]{--bg:#17181c}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);display:flex;justify-content:center;padding:16px;font-family:Arial,Helvetica,sans-serif}
+.calc{container-type:inline-size;width:min(380px,92vw);padding:3.2cqw;border-radius:11cqw 11cqw 9cqw 9cqw;background:linear-gradient(#3b3d56,#26283a);box-shadow:0 2cqw 5cqw #0006;user-select:none}
+.face{border-radius:9cqw 9cqw 7cqw 7cqw;background:linear-gradient(#d9dbde,#bfc2c6 60%,#b3b6bb);padding:4cqw 6cqw 6cqw;position:relative}
+.top{display:flex;justify-content:space-between;align-items:flex-start;height:12cqw}
+.brand{font:bold 7.5cqw Arial;letter-spacing:.3cqw;color:#222;margin:0 0 0 7cqw}
+.solar{width:35cqw;height:11cqw;background:repeating-linear-gradient(90deg,#4a2a26 0 8.2cqw,#8a8d90 8.2cqw 8.6cqw);border:.6cqw solid #6d6f73;border-radius:1cqw}
+.mdl{display:flex;justify-content:space-between;color:#333;font-size:3.4cqw;margin:1cqw 0 2cqw}
+.mdl i{font:italic 3.6cqw serif}.mdl b{color:#1a8a6a}.mdl span{font-size:2.5cqw;font-weight:bold}
+.lcd{background:#c3c7bb;border:1cqw solid #4a4c52;border-radius:1.5cqw;height:22cqw;padding:1.2cqw 2.5cqw;box-shadow:inset 0 .6cqw 1.2cqw #0005;font-family:'Share Tech Mono','Courier New',monospace;color:#1b1d18;position:relative;overflow:hidden}
+.st{font:bold 2.2cqw Arial;height:3cqw;display:flex;gap:2cqw}
+.l1{font-size:7.6cqw;height:8cqw;white-space:pre;overflow:hidden;font-weight:bold}
+.l2{font-size:9.6cqw;text-align:right;white-space:nowrap;line-height:9.5cqw;font-weight:bold}
+.l2 sup{font-size:.55em;line-height:0;vertical-align:.65em;margin-left:.1em}
+.cur{display:inline-block;width:.8ch;height:.18em;background:#1b1d18;vertical-align:baseline;animation:b 1s steps(1) infinite}
+@keyframes b{50%{opacity:0}}
+.g{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0 2.6cqw;margin-top:3cqw}
+.g5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0 3cqw;margin-top:3cqw}
+.w{display:flex;flex-direction:column;min-width:0}
+.l{display:flex;justify-content:space-between;font:bold 2.7cqw Arial;height:4.4cqw;align-items:flex-end;white-space:nowrap;padding:0 .5cqw}
+.l b{color:#b8862a}.l em{font-style:normal;color:#c33a2d}.l em.g{color:#17806a}
+.calc button{width:100%;white-space:nowrap;font:bold 4.2cqw Arial;color:#fff;border:0;cursor:pointer;height:7.4cqw;border-radius:2.2cqw;background:linear-gradient(#4d4f58,#2f3037);box-shadow:0 .7cqw 0 #1a1b20,0 1cqw 1.2cqw #0006;padding:0;transition:transform .05s}
+.calc button:active{transform:translateY(.5cqw);box-shadow:0 .2cqw 0 #1a1b20}
+.n button{height:9.4cqw;font-size:6cqw;border-radius:3cqw;background:linear-gradient(#383a4c,#23243a)}
+.o button{height:7cqw;border-radius:50%/60%;background:linear-gradient(#7b7e86,#50535b);font-size:3cqw}
+.or button{background:linear-gradient(#f59a3d,#e47a1c);font-size:4cqw}
+.r button{background:linear-gradient(#e05a3a,#c0361f);font-size:4.8cqw}
+.f.s button{font-size:3.2cqw}
+.pad{grid-column:3/5;grid-row:1/3;align-self:center;justify-self:center;width:21cqw;height:21cqw;border-radius:50%;background:radial-gradient(#9b9da2,#76787e);border:.8cqw solid #55575c;display:grid;place-items:center;font:bold 2.8cqw Arial;color:#ddd;position:relative;margin-top:1cqw}
+.pad span{position:absolute;cursor:pointer;color:#2b2c30;padding:1cqw;font-size:3cqw}
+.pad .u{top:.5cqw}.pad .d{bottom:.5cqw}.pad .lf{left:.8cqw}.pad .rt{right:.8cqw}
+.gt{grid-column:1/3}
+</style>
+</head>
+<body>
+<div class="calc"><div class="face">
+<div class="top"><div class="brand">CHEM</div><div class="solar"></div></div>
+<div class="mdl"><i></i><span>TWO WAY POWER</span></div>
+<div class="mdl" style="margin-top:-1.5cqw"><b style="font:bold 3.6cqw Arial">CHEM IS TRY</b></div>
+<div class="lcd"><div class="st" id="st"></div><div class="l1" id="l1"></div><div class="l2" id="l2">0</div></div>
+<div class="g" id="g1"></div>
+<div class="g" id="g2"></div>
+<div class="g5 n" id="g3"></div>
+</div></div>
+<script>
+(function(){
+'use strict';
+const R1=[['','SHIFT','','!SH','','','o'],['','','ALPHA','!AL','','','o'],'PAD',['','','MODE','!MODE','','','o'],['','ON','','!AC','','','o'],
+['Prog','EXIT','','','','','or'],['FMLA','LOOK','','','','','or'],['x⁻¹','x!','','⁻¹','!','','f'],['x³','∛','','³','∛(','','f']];
+const R2=[['a b/c','d/c','','!FR','','','f s'],['√','','','√(','','','f'],['x²','','~DEC','²','','','f'],['^','ˣ√','~HEX','^','','','f'],['log','10ˣ','~BIN','log(','10^(','','f'],['ln','eˣ','e','ln(','e^(','e','f'],
+['(−)','∠','A','−','','$A','f'],['°′″','←','B','!DMS','','$B','f s'],['hyp','','C','!HYP','','$C','f s'],['sin','sin⁻¹','D','sin(','sin⁻¹(','$D','f'],['cos','cos⁻¹','E','cos(','cos⁻¹(','$E','f'],['tan','tan⁻¹','F','tan(','tan⁻¹(','$F','f'],
+['RCL','STO','','!RCL','!STO','','f s'],['ENG','←','i','!ENG','','','f s'],['(','%','','(','%','','f'],[')','Abs','X',')','Abs(','$X','f'],[',',';','Y',',',';','$Y','f'],['M+','M−','M','!M+','!M-','$M','f s']];
+const R3=[['7','CONST','','7'],['8','','','8'],['9','CLR','','9','!CLR'],['DEL','INS','','!DEL','','','r'],['AC','OFF','','!AC','','','r'],
+['4','','','4'],['5','','','5'],['6','','','6'],['×','nPr','','×','P'],['÷','nCr','','÷','C'],
+['1','S-SUM','','1'],['2','S-VAR','','2'],['3','P-CMD','','3'],['+','Pol','','+'],['−','Rec','','−'],
+['0','Rnd','','0'],['•','Ran#','','.','Ran#'],['EXP','π','','ᴇ','π'],['Ans','DRG▸','','Ans','!MODE'],['EXE','Re⇔Im','','!EXE']];
+const $=id=>document.getElementById(id),K={};
+function build(el,rows,pre){rows.forEach((k,i)=>{if(k=='PAD'){el.insertAdjacentHTML('beforeend','<div class="pad"><span class="u" data-p="u">▲</span><span class="d" data-p="d">▼</span><span class="lf" data-p="l">◀</span><span class="rt" data-p="r">▶</span>REPLAY</div>');return}
+const id=pre+i;K[id]=k;const g=(k[2]||'')[0]=='~';
+el.insertAdjacentHTML('beforeend',`<div class="w ${k[6]||''}"><div class="l"><b>${k[1]}</b><em class="${g?'g':''}">${g?k[2].slice(1):k[2]}</em></div><button data-k="${id}">${k[0]}</button></div>`)})}
+build($('g1'),R1,'a');build($('g2'),R2,'b');build($('g3'),R3,'c');
+const V={A:0,B:0,C:0,D:0,E:0,F:0,X:0,Y:0,M:0};
+let T=[],c=0,sh=0,al=0,hy=0,pd='',ans=0,done=0,res='0',am=0,H=[],hi=0;
+const AM=['D','R','G'];
+const fact=n=>{if(n<0||n>69||n%1)throw'm';let r=1;for(let i=2;i<=n;i++)r*=i;return r};
+const rad=x=>am==0?x*Math.PI/180:am==1?x:x*Math.PI/200,deg=x=>am==0?x*180/Math.PI:am==1?x:x*200/Math.PI;
+const z=x=>Math.abs(x)<1e-12?0:x;
+const F={'sin(':x=>z(Math.sin(rad(x))),'cos(':x=>z(Math.cos(rad(x))),'tan(':x=>{if(am==0&&Math.abs(x%180)==90)throw'm';return z(Math.tan(rad(x)))},
+'sin⁻¹(':x=>deg(Math.asin(x)),'cos⁻¹(':x=>deg(Math.acos(x)),'tan⁻¹(':x=>deg(Math.atan(x)),'sinh(':Math.sinh,'cosh(':Math.cosh,'tanh(':Math.tanh,
+'log(':Math.log10,'ln(':Math.log,'√(':Math.sqrt,'∛(':Math.cbrt,'10^(':x=>10**x,'e^(':Math.exp,'Abs(':Math.abs};
+const num=t=>t&&/^[0-9.]$/.test(t);
+function ev(T){let i=0;const pk=()=>T[i];
+const E=()=>{let v=Tm();while(pk()=='+'||pk()=='−'){const o=T[i++],r=Tm();v=o=='+'?v+r:v-r}return v};
+const Tm=()=>{let v=U();for(;;){const t=pk();if(t=='×'||t=='÷'){i++;const r=U();if(t=='÷'){if(r==0)throw'm';v/=r}else v*=r}
+else if(t&&(num(t)||t=='('||F[t]||'πe'.includes(t)&&t.length==1||t=='Ans'||t=='Ran#'||t[0]=='$'))v*=Pw();else break}return v};
+const U=()=>{if(pk()=='−'){i++;return-U()}if(pk()=='+'){i++;return U()}return Pw()};
+const Pw=()=>{let b=Po();if(pk()=='^'){i++;b=Math.pow(b,U())}return b};
+const Po=()=>{let v=Pr();for(;;){const t=pk();if(t=='²')v*=v;else if(t=='³')v=v*v*v;else if(t=='⁻¹'){if(v==0)throw'm';v=1/v}else if(t=='!')v=fact(v);else if(t=='%')v/=100;
+else if(t=='P'||t=='C'){i++;const r=Pr();if(r>v||v%1||r%1)throw'm';v=t=='P'?fact(v)/fact(v-r):fact(v)/(fact(r)*fact(v-r));continue}else break;i++}return v};
+const Pr=()=>{const t=T[i++];if(t===undefined)throw's';let v;
+if(num(t)){let s=t;while(num(pk()))s+=T[i++];if(pk()=='ᴇ'){i++;let sg='';if(pk()=='−'){i++;sg='-'}let e='';while(pk()&&/^\d$/.test(pk()))e+=T[i++];if(!e)throw's';s+='e'+sg+e}v=parseFloat(s);if(isNaN(v))throw's'}
+else if(t=='(')v=E(),pk()==')'&&i++;
+else if(F[t]){const a=E();pk()==')'&&i++;v=F[t](a)}
+else if(t=='π')v=Math.PI;else if(t=='e')v=Math.E;else if(t=='Ans')v=ans;else if(t=='Ran#')v=Math.floor(Math.random()*1000)/1000;else if(t[0]=='$')v=V[t[1]];else throw's';
+if(!isFinite(v))throw'm';return v};
+if(!T.length)throw's';const v=E();if(i<T.length)throw's';return v}
+function fmt(x){if(x==0)return'0';const a=Math.abs(x);let s;
+if(a>=1e10||a<1e-3){let[m,e]=x.toExponential(9).split('e');m=m.includes('.')?m.replace(/0+$/,'').replace(/\.$/,''):m;return m+'E'+(+e)}
+s=x.toPrecision(10);if(/e/.test(s))s=(+s).toFixed(18);if(s.includes('.'))s=s.replace(/0+$/,'').replace(/\.$/,'');return s}
+function eng(x){if(x==0)return'0';const e=Math.floor(Math.log10(Math.abs(x))/3)*3;return fmt(+(x/10**e).toPrecision(10))+'E'+e}
+function fr(x){const s=x<0?'−':'',a=Math.abs(x),w=Math.floor(a),f=a-w;if(f<1e-10)return null;let h0=0,h1=1,k0=1,k1=0,y=f;
+for(let n=0;n<20;n++){const q=Math.floor(y);[h0,h1]=[h1,q*h1+h0];[k0,k1]=[k1,q*k1+k0];if(k1>999)return null;if(Math.abs(f-h1/k1)<1e-10)return s+(w?w+'⌟':'')+h1+'⌟'+k1;y=1/(y-q)}return null}
+const dsp=t=>t=='ᴇ'?'E':t[0]=='$'?t[1]:t;
+function render(){const d=T.map(dsp);const pos=d.slice(0,c).join('').length,txt=d.join('');const st=Math.max(0,pos-12);
+const a=txt.slice(st,pos).replace(/</g,'&lt;'),b=txt.slice(pos,st+13);
+$('l1').innerHTML=done?txt.slice(Math.max(0,txt.length-13)):a+'<span class="cur"></span>'+b;
+$('l2').innerHTML=res.replace(/^(.*)E(-?\d+)$/,'$1×10<sup>$2</sup>');
+$('st').innerHTML=[sh?'S':'',al?'A':'',hy?'hyp':'',V.M?'M':'',pd?pd.toUpperCase():'',AM[am]].map(x=>x?`<span>${x}</span>`:'').join('')}
+function ins(t){if(done){const op=['+','−','×','÷','^','²','³','⁻¹','P','C','!'].includes(t);T=op?['Ans']:[];c=T.length;done=0;res=''}
+if(hy&&/^(sin|cos|tan)\(/.test(t)){t=t.slice(0,3)+'h(';hy=0}T.splice(c++,0,t)}
+function exe(){try{ans=ev(T);H.push(T.slice());hi=H.length;res=fmt(ans)}catch(e){res=e=='m'?'Math ERROR':'Syntax ERROR'}done=1}
+function act(t){switch(t){
+case'!SH':sh=!sh;al=0;return;case'!AL':al=!al;sh=0;return;
+case'!AC':T=[];c=0;done=0;res='0';pd='';hy=0;sh=al=0;return;
+case'!CLR':T=[];c=0;done=0;res='0';Object.keys(V).forEach(k=>V[k]=0);ans=0;return;
+case'!DEL':if(done){done=0;res='';c=T.length}if(c>0)T.splice(--c,1);if(!T.length)res='0';return;
+case'!MODE':am=(am+1)%3;return;case'!HYP':hy=!hy;return;
+case'!EXE':exe();return;
+case'!RCL':pd='rcl';al=1;return;case'!STO':pd='sto';al=1;return;
+case'!M+':case'!M-':try{const v=T.length?ev(T):ans;V.M+=t=='!M+'?v:-v;ans=v;res=fmt(v);done=1}catch(e){res='Math ERROR';done=1}return;
+case'!ENG':if(done&&isFinite(ans))res=eng(ans);return;
+case'!FR':if(done){const f=fr(ans);if(f)res=f}return;
+case'!DMS':if(done){const a=Math.abs(ans),d=Math.floor(a),m=Math.floor((a-d)*60+1e-9),s=+(((a-d)*60-m)*60).toFixed(2);res=(ans<0?'−':'')+d+'°'+m+'′'+s+'″'}return;
+default:ins(t)}}
+function press(id){const k=K[id];let t=k[3];
+if(t=='!SH'||t=='!AL'){act(t);render();return}
+if(sh){t=k[4];sh=0}else if(al){t=k[5];al=0}
+if(pd){if(t&&t[0]=='$'){if(pd=='sto'){V[t[1]]=ans;res=fmt(ans)}else ins(t);pd=''}else if(t&&t!=''){pd=''}else{}}
+if(t)act(t);render()}
+function pad(p){if(p=='l'&&c>0){c--;if(done){done=0;res=''}}if(p=='r'&&c<T.length)c++;
+if((p=='u'||p=='d')&&H.length){hi=Math.max(0,Math.min(H.length-1,hi+(p=='u'?-1:1)));T=H[hi].slice();c=T.length;done=0;res=''}render()}
+document.querySelector('.calc').addEventListener('click',e=>{const b=e.target.closest('button');if(b)press(b.dataset.k);const p=e.target.closest('[data-p]');if(p)pad(p.dataset.p)});
+const keyMap={'+':'+','-':'−','*':'×','/':'÷','(':'(',')':')','^':'^','.':'.',',':',','!':'!','%':'%'};
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey)return;let k=e.key;
+if(/^\d$/.test(k)){act(k)}else if(keyMap[k]){act(keyMap[k])}else if(k=='Enter'||k=='='){act('!EXE')}else if(k=='Backspace'){act('!DEL')}else if(k=='Escape'){act('!AC')}else if(k=='ArrowLeft'){pad('l');return}else if(k=='ArrowRight'){pad('r');return}else if(k=='ArrowUp'){pad('u');return}else if(k=='ArrowDown'){pad('d');return}else return;
+e.preventDefault();render()});
+render();
+})();
+</script>
+</body>
+</html>

@@ -38,6 +38,14 @@ export const PAGES_CONFIG = [
     image: 'ion-forge-thumb.png',
   },
   {
+    file: 'calculator.html',
+    level: 'F4',
+    title: 'Calculator',
+    subtitle: 'For chemistry calculation',
+    topic: 'Metals',
+    image: 'calculator-thumb.png',
+  },
+  {
     file: 'insoluble-layer.html',
     level: 'F4',
     title: 'Insoluble Layer Preventing Further Reaction',
