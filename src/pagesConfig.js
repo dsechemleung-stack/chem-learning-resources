@@ -1,160 +1,76 @@
-// ── PAGES CONFIGURATION ──
-// Add new pages here. The system will automatically create buttons and handle routing.
-//
-// Fields:
-// - file: HTML filename (must match the file in project root)
-// - level: 'F3' | 'F4' | 'F5' | 'F6'
-// - title: Button title (shown on the widget)
-// - subtitle: Brief description shown below title
-// - topic: Topic category for filtering (e.g., 'bonding', 'acids-bases', 'salts', 'titration', 'hot')
-// - image: Image filename for the widget thumbnail (optional, in public folder)
+// Generated automatically by vite.config.js from your Google Sheet / pages.csv
+import generatedPages from './generatedPages.json';
 
-export const PAGES_CONFIG = [
-  // ── F3 PAGES ──
-  {
-    file: 'chemical-bonding.html',
-    level: 'F3',
-    title: 'Chemical Bonding',
-    subtitle: 'Interactive learning page',
-    topic: 'MW1',
-    image: 'chemical-bonding-thumb.png',
-  },
-  {
-    file: 'ecological-pyramid.html',
-    level: 'F3',
-    title: 'Ecological Pyramids',
-    subtitle: 'Energy flow across a food chain',
-    topic: 'Ecology-BIO',
-    image: 'ecological-pyramid.png',
-  },
-  {
-    file: 'carbon-cycle.html',
-    level: 'F3',
-    title: 'Carbon cycle',
-    subtitle: 'Material cycling',
-    topic: 'Ecology-BIO',
-    image: 'carbon-cycle.png',
-  },
+export const PAGES_CONFIG = generatedPages;
 
-  // ── F4 PAGES ──
-  {
-    file: 'electron-diagram.html',
-    level: 'F4',
-    title: 'Electron Diagrams of Molecules',
-    subtitle: 'Dot & cross lab · covalent bonding',
-    topic: 'MW1',
-    image: 'electron-diagram-thumb.png',
-  },
-  {
-    file: 'ion-forge.html',
-    level: 'F4',
-    title: 'IonForge',
-    subtitle: 'Chemistry Ion Trainer',
-    topic: 'MW1',
-    image: 'ion-forge-thumb.png',
-  },
-  {
-    file: 'calculator.html',
-    level: 'F4',
-    title: 'Calculator',
-    subtitle: 'For calculation in CHEM',
-    topic: 'Calculation',
-    image: 'calculator-thumb.png',
-  },
-  {
-    file: 'mole.html',
-    level: 'F4',
-    title: 'Mole Concepts',
-    subtitle: 'What is a mole? Why a mole = ...',
-    topic: 'Calculation',
-    image: 'mole-thumb.png',
-  },
-  {
-    file: 'insoluble-layer.html',
-    level: 'F4',
-    title: 'Insoluble Layer Preventing Further Reaction',
-    subtitle: 'Animations and comparison',
-    topic: 'Metals',
-    image: 'insolubler-layer-thumb.png',
-  },
-  {
-    file: 'metals-quiz.html',
-    level: 'F4',
-    title: 'Metals: Self-Quiz',
-    subtitle: 'Check your understanding',
-    topic: 'Metals',
-    image: 'metals-quiz-thumb.png',
-  },
-  {
-    file: 'neutralization-exothermic.html',
-    level: 'F4',
-    title: 'Neutralization: Exothermic nature',
-    subtitle: 'Interactive notes / explanation page',
-    topic: 'Acids&Bases',
-    image: 'neutralization-thumb.png',
-  },
-  {
-    file: 'titration.html',
-    level: 'F4',
-    title: 'Acid–Base Titration',
-    subtitle: 'Interactive titration simulation',
-    topic: 'Acids&Bases',
-    image: 'titration-thumb.png',
-  },
-  {
-    file: 'salt-page.html',
-    level: 'F4',
-    title: 'Salt Quiz',
-    subtitle: 'Salt solubility rules + preparation method practice',
-    topic: 'Acids&Bases',
-    image: 'salt-quiz-thumb.png',
-  },
-  {
-    file: 'HOT_guiding_saltprep_reactingmass.html',
-    level: 'F4',
-    title: 'HOT questions: salt preparation and reacting masses',
-    subtitle: 'Guiding questions + scaffolded hints',
-    topic: 'Acids&Bases',
-    image: 'hot-questions-thumb.png',
-  },
+// Built-in defaults for existing topics.
+// The sheet columns (icon / color / topic_label) override these.
+const BUILT_IN = {
+  MW1: { label: 'Microscopic World I', icon: 'atom', color: '#76A8A5' },
+  'Ecology-BIO': { label: 'Ecology', icon: 'leaf', color: '#8FD694' },
+  Calculation: { label: 'Calculations', icon: 'calculator', color: '#E8C872' },
+  Metals: { label: 'Metals', icon: 'metal', color: '#B7C3D6' },
+  'Acids&Bases': { label: 'Acids & Bases', icon: 'flask', color: '#F29B8C' },
+  Rate: { label: 'Rate of Reaction', icon: 'gauge', color: '#8DB8F2' },
+};
 
-  // ── F5 PAGES ──
-  {
-    file: 'collision-theory.html',
-    level: 'F5',
-    title: 'Collision Theory Lab',
-    subtitle: 'Interactive simulation of collision theory',
-    topic: 'Rate',
-    image: 'collision-theory-thumb.png',
-  },
-  {
-    file: 'rate-reaction-with-syringe.html',
-    level: 'F5',
-    title: 'Rate of Reaction Lab',
-    subtitle: 'Virtual lab with gas syringe',
-    topic: 'Rate',
-    image: 'rate-reaction-with-syringe-thumb.png',
-  },
-
-  // ── F6 PAGES ──
-  // Add F6 pages here when needed
-  // Example:
-  // {
-  //   file: 'your-page.html',
-  //   level: 'F6',
-  //   title: 'Your Page Title',
-  //   subtitle: 'Brief description',
-  //   topic: 'your-topic',
-  // },
+// New topics without a colour get one from here (stable per topic name)
+const PALETTE = [
+  '#76A8A5', '#8FD694', '#E8C872', '#B7C3D6', '#F29B8C',
+  '#8DB8F2', '#C9A3E8', '#F2B684', '#7ED6D0', '#E89BB5',
 ];
 
-// ── TOPIC LABELS (for filter buttons) ──
-export const TOPIC_LABELS = {
-  bonding: 'Bonding',
-  'acids-bases': 'Acids & Bases',
-  salts: 'Salts',
-  titration: 'Titration',
-  hot: 'HOT Questions',
-  rate: 'Rate of Reaction',
-  // Add more topic labels as needed
+const hash = (s) => {
+  let h = 0;
+  for (const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+  return h;
 };
+
+const prettify = (t) =>
+  String(t || 'Other')
+    .replace(/[-_]+/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\s*&\s*/g, ' & ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+// Build one meta record per topic:
+// first non-empty sheet value wins -> built-in default -> automatic fallback
+export const TOPIC_META = (() => {
+  const meta = {};
+
+  PAGES_CONFIG.forEach((p) => {
+    const t = p.topic;
+    if (!t) return;
+    if (!meta[t]) meta[t] = { label: '', icon: '', color: '' };
+    const m = meta[t];
+    if (!m.label && p.topic_label) m.label = p.topic_label;
+    if (!m.icon && p.icon) m.icon = p.icon;
+    if (!m.color && p.color) m.color = p.color;
+  });
+
+  Object.keys(meta).forEach((t) => {
+    const b = BUILT_IN[t] || {};
+    const m = meta[t];
+    m.label = m.label || b.label || prettify(t);
+    m.icon = m.icon || b.icon || '';
+    m.color = m.color || b.color || PALETTE[hash(t) % PALETTE.length];
+  });
+
+  return meta;
+})();
+
+export function getTopicMeta(topic) {
+  return (
+    TOPIC_META[topic] || {
+      label: prettify(topic),
+      icon: '',
+      color: PALETTE[hash(topic) % PALETTE.length],
+    }
+  );
+}
+
+// Kept for backward compatibility
+export const TOPIC_LABELS = Object.fromEntries(
+  Object.entries(TOPIC_META).map(([k, v]) => [k, v.label])
+);
