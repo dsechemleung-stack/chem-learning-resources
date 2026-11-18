@@ -22,6 +22,14 @@ const BACK_BUTTON = {
   gap: 14,                 // distance from the screen edge in px
   label: 'Back to index',  // tooltip + screen-reader text (not shown on screen)
 };
+
+// Icons injected into every page that does not already declare its own.
+// Files live in /public. Bump ICON_VERSION when you change an icon file.
+const ICONS = {
+  touch: 'favicon-180x180.png', // iPhone / iPad "Add to Home Screen" icon (solid background)
+  tab: 'favicon-t-32.png',      // browser tab icon
+  version: '1',
+};
 // ──────────────────────────────────────────────────────
 
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
@@ -53,6 +61,11 @@ function warnMissingImages(pages) {
   pages.forEach((p) => {
     if (p.image && !fs.existsSync(path.join(PUBLIC_DIR, p.image))) {
       console.warn(`⚠ Thumbnail "${p.image}" (${p.file}) not found in /public. A topic icon will be shown instead.`);
+    }
+  });
+  [ICONS.touch, ICONS.tab].forEach((f) => {
+    if (!fs.existsSync(path.join(PUBLIC_DIR, f))) {
+      console.warn(`⚠ Icon "${f}" not found in /public. Home-screen / tab icon will be missing.`);
     }
   });
 }
@@ -177,6 +190,37 @@ function backButtonPlugin(getPageFiles) {
   };
 }
 
+/* ───────────── Home-screen + tab icons (injected into every page) ───────────── */
+
+// Without an apple-touch-icon, iOS draws a plain letter ("C") when a page is added to the Home Screen.
+// Pages that already declare their own icon are left alone (index.html has its own).
+function iconsPlugin() {
+  return {
+    name: 'hub-icons',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const tags = [];
+        if (!/rel=["']apple-touch-icon/i.test(html)) {
+          tags.push({
+            tag: 'link',
+            attrs: { rel: 'apple-touch-icon', sizes: '180x180', href: `./${ICONS.touch}?v=${ICONS.version}` },
+            injectTo: 'head',
+          });
+        }
+        if (!/rel=["'](shortcut )?icon["']/i.test(html)) {
+          tags.push({
+            tag: 'link',
+            attrs: { rel: 'icon', type: 'image/png', sizes: '32x32', href: `./${ICONS.tab}?v=${ICONS.version}` },
+            injectTo: 'head',
+          });
+        }
+        return tags.length ? tags : undefined;
+      },
+    },
+  };
+}
+
 export default defineConfig(async () => {
   const pages = await loadPages();
   warnMissingImages(pages);
@@ -198,7 +242,7 @@ export default defineConfig(async () => {
   });
 
   return {
-    plugins: [react(), backButtonPlugin(() => pageFiles)],
+    plugins: [react(), backButtonPlugin(() => pageFiles), iconsPlugin()],
     build: {
       rollupOptions: { input },
     },
