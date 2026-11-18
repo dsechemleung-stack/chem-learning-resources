@@ -68,16 +68,21 @@ const GridIcon = ({ size = 18 }) => (
   </svg>
 );
 
-/* ───────────── Dropdown (icons, numbers, counts, keyboard) ───────────── */
-function Dropdown({ caption, value, options, onChange, align = 'left', className = '' }) {
+/* ───────────── Dropdown (multi-select, icons, numbers, counts, keyboard) ───────────── */
+// selected = array of chosen values; [] means "everything" (the first option, value 'all')
+function Dropdown({ caption, selected, options, onChange, unit = 'items', align = 'left', className = '' }) {
   const [open, setOpen] = React.useState(false);
   const [hi, setHi] = React.useState(0);
   const wrap = React.useRef(null);
   const list = React.useRef(null);
   const uid = React.useId();
 
-  const idx = Math.max(0, options.findIndex((o) => o.value === value));
-  const sel = options[idx];
+  const count = selected.length;
+  const isOn = (o) => (o.value === 'all' ? count === 0 : selected.includes(o.value));
+  const idx = Math.max(0, options.findIndex(isOn));
+  const sel = options.find((o) => o.value === selected[0]) || options[0];
+  const many = count > 1;
+  const btnLabel = many ? `${count} ${unit}` : sel.label;
 
   React.useEffect(() => {
     if (!open) return undefined;
@@ -92,9 +97,13 @@ function Dropdown({ caption, value, options, onChange, align = 'left', className
     if (open) list.current?.querySelector(`[data-i="${hi}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [open, hi]);
 
+  // Toggle one option; the list stays open so several can be ticked. "All" clears the selection.
   const choose = (o) => {
-    onChange(o.value);
-    setOpen(false);
+    if (o.value === 'all') {
+      onChange([]);
+      return;
+    }
+    onChange(selected.includes(o.value) ? selected.filter((v) => v !== o.value) : [...selected, o.value]);
   };
 
   const onKeyDown = (e) => {
@@ -129,25 +138,26 @@ function Dropdown({ caption, value, options, onChange, align = 'left', className
       <button
         type="button"
         className="dd-btn"
-        style={{ '--ic': sel.color || '#C5D7B5' }}
+        style={{ '--ic': many ? '#C5D7B5' : sel.color || '#C5D7B5' }}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={`${uid}-list`}
-        aria-label={`${caption}: ${sel.label}`}
+        aria-label={`${caption}: ${btnLabel}`}
         onClick={() => {
           if (!open) setHi(idx);
           setOpen((o) => !o);
         }}
         onKeyDown={onKeyDown}
       >
-        <span className="dd-ico">{sel.icon}</span>
+        <span className="dd-ico">{many ? options[0].icon : sel.icon}</span>
         <span className="dd-txt">
           <span className="dd-cap">{caption}</span>
           <span className="dd-val">
-            {sel.number != null && <span className="dd-val-num">{sel.number}.</span>}
-            {sel.label}
+            {!many && sel.number != null && <span className="dd-val-num">{sel.number}.</span>}
+            {btnLabel}
           </span>
         </span>
+        {many && <span className="dd-badge">{count}</span>}
         <span className="dd-caret"><ChevronDown /></span>
       </button>
 
@@ -155,28 +165,32 @@ function Dropdown({ caption, value, options, onChange, align = 'left', className
         <ul
           className={`dd-pop ${align === 'right' ? 'right' : ''}`}
           role="listbox"
+          aria-multiselectable="true"
           id={`${uid}-list`}
           ref={list}
           aria-label={caption}
         >
-          {options.map((o, i) => (
-            <li
-              key={o.value}
-              data-i={i}
-              role="option"
-              aria-selected={o.value === value}
-              className={`dd-opt ${i === hi ? 'hi' : ''} ${o.value === value ? 'sel' : ''}`}
-              style={{ '--ic': o.color || '#C5D7B5' }}
-              onMouseEnter={() => setHi(i)}
-              onClick={() => choose(o)}
-            >
-              <span className="dd-num">{o.number != null ? `${o.number}.` : ''}</span>
-              <span className="dd-ico">{o.icon}</span>
-              <span className="dd-optlabel">{o.label}</span>
-              {o.count != null && <span className="dd-count">{o.count}</span>}
-              <span className="dd-check">{o.value === value ? <CheckIcon /> : null}</span>
-            </li>
-          ))}
+          {options.map((o, i) => {
+            const on = isOn(o);
+            return (
+              <li
+                key={o.value}
+                data-i={i}
+                role="option"
+                aria-selected={on}
+                className={`dd-opt ${i === hi ? 'hi' : ''} ${on ? 'sel' : ''}`}
+                style={{ '--ic': o.color || '#C5D7B5' }}
+                onMouseEnter={() => setHi(i)}
+                onClick={() => choose(o)}
+              >
+                <span className={`dd-box ${on ? 'on' : ''}`}>{on ? <CheckIcon /> : null}</span>
+                <span className="dd-num">{o.number != null ? `${o.number}.` : ''}</span>
+                <span className="dd-ico">{o.icon}</span>
+                <span className="dd-optlabel">{o.label}</span>
+                {o.count != null && <span className="dd-count">{o.count}</span>}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
@@ -208,7 +222,7 @@ function AppCard({ app, topic, showLevel }) {
           />
         ) : (
           <div className="card-media-fallback">
-            <TopicIcon topic={topic} size={52} />
+            <TopicIcon topic={topic} size={44} />
           </div>
         )}
       </div>
@@ -223,7 +237,7 @@ function AppCard({ app, topic, showLevel }) {
             {chapters.length > 0 ? (
               chapters.map((c) => (
                 <span key={c} className="chapter-chip">
-                  <BookIcon /> Ch {c}
+                  <BookIcon size={12} /> Ch {c}
                 </span>
               ))
             ) : (
@@ -384,8 +398,8 @@ export default function App() {
     levelChoice === 'all' || levels.includes(levelChoice) ? levelChoice : levels[0];
   const allLevels = activeLevel === 'all';
 
-  const [topicChoice, setTopicChoice] = React.useState('all');
-  const [chapterChoice, setChapterChoice] = React.useState('all');
+  const [topicChoices, setTopicChoices] = React.useState([]); // [] = all topics
+  const [chapterChoices, setChapterChoices] = React.useState([]); // [] = all chapters
   const [query, setQuery] = React.useState('');
   const [activeTopic, setActiveTopic] = React.useState(null);
   const searchRef = React.useRef(null);
@@ -424,32 +438,29 @@ export default function App() {
     [levelPages]
   );
 
-  const topicValue =
-    topicChoice === 'all' || topics.some((t) => t.key === topicChoice) ? topicChoice : 'all';
+  // Keep only choices that still exist in this level
+  const topicValues = topicChoices.filter((k) => topics.some((t) => t.key === k));
 
   // Chapters available for this level (and topic, if one is selected), with counts
   const chapters = React.useMemo(() => {
     const counts = new Map();
     levelPages
-      .filter((p) => topicValue === 'all' || p.topics.includes(topicValue))
+      .filter((p) => !topicValues.length || p.topics.some((t) => topicValues.includes(t)))
       .forEach((p) =>
         parseChapters(p.chapter).forEach((c) => counts.set(c, (counts.get(c) || 0) + 1))
       );
     return Array.from(counts.entries())
       .sort((a, b) => sortChapters(a[0], b[0]))
       .map(([value, count]) => ({ value, count }));
-  }, [levelPages, topicValue]);
+  }, [levelPages, topicValues]);
 
-  const chapterValue =
-    chapterChoice === 'all' || chapters.some((c) => c.value === chapterChoice)
-      ? chapterChoice
-      : 'all';
+  const chapterValues = chapterChoices.filter((v) => chapters.some((c) => c.value === v));
 
   const filtered = React.useMemo(() => {
     const tokens = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
     return levelPages.filter((p) => {
-      if (topicValue !== 'all' && !p.topics.includes(topicValue)) return false;
-      if (chapterValue !== 'all' && !parseChapters(p.chapter).includes(chapterValue)) return false;
+      if (topicValues.length && !p.topics.some((t) => topicValues.includes(t))) return false;
+      if (chapterValues.length && !parseChapters(p.chapter).some((c) => chapterValues.includes(c))) return false;
       if (tokens.length) {
         const hay = [
           p.title,
@@ -465,14 +476,14 @@ export default function App() {
       }
       return true;
     });
-  }, [levelPages, topicValue, chapterValue, query]);
+  }, [levelPages, topicValues, chapterValues, query]);
 
   // Group by topic (sorted by topic number). An app with 2+ topics appears in each.
   const groups = React.useMemo(() => {
     const map = new Map();
     filtered.forEach((p) =>
       p.topics.forEach((t) => {
-        if (topicValue !== 'all' && t !== topicValue) return;
+        if (topicValues.length && !topicValues.includes(t)) return;
         if (!map.has(t)) map.set(t, []);
         map.get(t).push(p);
       })
@@ -480,7 +491,7 @@ export default function App() {
     return Array.from(map.entries()).sort(
       (a, b) => getTopicMeta(a[0]).order - getTopicMeta(b[0]).order
     );
-  }, [filtered, topicValue]);
+  }, [filtered, topicValues]);
 
   // One section only -> show every app in a wrapping grid. Several -> one swipeable row each.
   const gridMode = groups.length === 1;
@@ -511,18 +522,18 @@ export default function App() {
     document.getElementById(topicId(topic))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const hasFilters = topicValue !== 'all' || chapterValue !== 'all' || query.trim() !== '';
+  const hasFilters = topicValues.length > 0 || chapterValues.length > 0 || query.trim() !== '';
 
   const clearFilters = () => {
-    setTopicChoice('all');
-    setChapterChoice('all');
+    setTopicChoices([]);
+    setChapterChoices([]);
     setQuery('');
   };
 
   const changeLevel = (level) => {
     setLevelChoice(level);
-    setTopicChoice('all');
-    setChapterChoice('all');
+    setTopicChoices([]);
+    setChapterChoices([]);
   };
 
   const topicOptions = [
@@ -725,7 +736,20 @@ export default function App() {
           font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 999px;
           background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
         }
-        .dd-check { width: 16px; display: flex; flex-shrink: 0; color: #C5D7B5; }
+        .dd-box {
+          width: 18px; height: 18px; flex-shrink: 0; border-radius: 5px;
+          display: flex; align-items: center; justify-content: center;
+          border: 1.5px solid rgba(197,215,181,0.5); color: #0a1a18;
+          transition: background 120ms ease, border-color 120ms ease;
+        }
+        .dd-box.on { background: var(--ic, #C5D7B5); border-color: var(--ic, #C5D7B5); }
+        .dd-box svg { width: 13px; height: 13px; stroke-width: 3; }
+        .dd-badge {
+          flex-shrink: 0; min-width: 20px; height: 20px; padding: 0 6px;
+          display: inline-flex; align-items: center; justify-content: center;
+          border-radius: 999px; font-size: 11px; font-weight: 800;
+          color: #0a1a18; background: #C5D7B5;
+        }
 
         .status-row {
           margin-top: 8px; padding: 0 4px;
@@ -741,9 +765,9 @@ export default function App() {
         }
         .clear-btn:hover { background: rgba(197,215,181,0.12); }
 
-        /* SECTIONS */
+        /* SECTIONS  (--card-w = width of every app card; thumbnail stays square) */
         .sections { position: relative; z-index: 10; max-width: 1200px; margin: 24px auto 0; }
-        .section { margin-bottom: 28px; scroll-margin-top: 96px; --accent: #C5D7B5; }
+        .section { margin-bottom: 28px; scroll-margin-top: 96px; --accent: #C5D7B5; --card-w: 190px; }
         .section-head { display: flex; align-items: center; gap: 12px; margin: 0 4px 2px; }
         .section-icon {
           width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
@@ -756,10 +780,10 @@ export default function App() {
         .section-title .num { color: rgba(255,255,255,0.5); margin-right: 6px; }
         .section-count { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.55); margin-top: 2px; }
 
-        /* CAROUSEL: four per row, swipe / drag / arrows */
+        /* CAROUSEL: fixed-size cards, swipe / drag / arrows */
         .carousel { position: relative; }
         .track {
-          display: flex; gap: 16px; overflow-x: auto; padding: 12px 4px 18px;
+          display: flex; gap: 14px; overflow-x: auto; padding: 12px 4px 18px;
           scroll-snap-type: x mandatory; scroll-padding-left: 4px;
           overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch;
           scrollbar-width: none; -ms-overflow-style: none;
@@ -767,10 +791,10 @@ export default function App() {
         .track::-webkit-scrollbar { display: none; }
         .track.dragging { scroll-snap-type: none; cursor: grabbing; user-select: none; }
         .track.dragging .card { pointer-events: none; }
-        .track .card { flex: 0 0 max(230px, calc((100% - 56px) / 4)); }
+        .track .card { flex: 0 0 var(--card-w); }
 
         .carousel-btn {
-          position: absolute; top: 38%; z-index: 5; width: 42px; height: 42px;
+          position: absolute; top: 34%; z-index: 5; width: 42px; height: 42px;
           border-radius: 999px; border: 1px solid rgba(197,215,181,0.5); cursor: pointer;
           display: flex; align-items: center; justify-content: center;
           color: #fff; background: rgba(10,26,24,0.85);
@@ -785,15 +809,16 @@ export default function App() {
 
         /* GRID: used when only one topic is on screen, so every app is visible */
         .grid {
-          display: grid; gap: 16px; padding: 12px 4px 18px;
-          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          display: grid; gap: 14px; padding: 12px 4px 18px;
+          grid-template-columns: repeat(auto-fill, var(--card-w));
+          justify-content: start;
         }
 
         /* CARD: square thumbnail, never cropped */
         .card {
           scroll-snap-align: start; text-decoration: none; color: inherit;
           display: flex; flex-direction: column; overflow: hidden;
-          border-radius: 18px;
+          border-radius: 14px;
           background: linear-gradient(180deg, rgba(118,168,165,0.14), rgba(118,168,165,0.06));
           border: 1.5px solid rgba(197,215,181,0.28);
           box-shadow: 0 12px 32px rgba(0,0,0,0.4);
@@ -813,7 +838,7 @@ export default function App() {
         }
         .card-media img {
           width: 100%; height: 100%; object-fit: contain; display: block;
-          padding: 8px; user-select: none; -webkit-user-drag: none;
+          padding: 6px; user-select: none; -webkit-user-drag: none;
           transition: transform 300ms ease;
         }
         .card:hover .card-media img { transform: scale(1.04); }
@@ -822,22 +847,22 @@ export default function App() {
           color: var(--accent);
           background: color-mix(in srgb, var(--accent) 12%, #0d1f1e);
         }
-        .card-body { padding: 12px 14px 12px; display: flex; flex-direction: column; flex: 1; }
-        .card-title { margin: 0; font-size: 15px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; }
+        .card-body { padding: 10px 12px; display: flex; flex-direction: column; flex: 1; }
+        .card-title { margin: 0; font-size: 13.5px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; }
         .card-subtitle {
-          margin: 5px 0 0; font-size: 12.5px; font-weight: 600; line-height: 1.4;
+          margin: 4px 0 0; font-size: 11.5px; font-weight: 600; line-height: 1.35;
           color: rgba(230,245,230,0.75);
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         .card-foot {
-          margin-top: auto; padding-top: 12px;
-          display: flex; align-items: center; justify-content: space-between; gap: 8px;
+          margin-top: auto; padding-top: 8px;
+          display: flex; align-items: center; justify-content: space-between; gap: 6px;
         }
-        .chapter-list { display: flex; flex-wrap: wrap; gap: 6px; }
+        .chapter-list { display: flex; flex-wrap: wrap; gap: 5px; }
         .chapter-chip {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 3px 8px; border-radius: 8px;
-          font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
+          display: inline-flex; align-items: center; gap: 4px;
+          padding: 2px 7px; border-radius: 7px;
+          font-size: 10px; font-weight: 800; letter-spacing: 0.04em;
           color: #0a1a18; background: var(--accent);
         }
         .chapter-chip.muted { color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08); }
@@ -918,8 +943,9 @@ export default function App() {
           .main { padding: 92px 14px 48px; }
           .main.has-rail { padding-right: 54px; }
           .toolbar { padding: 10px; border-radius: 16px; }
-          .track .card { flex-basis: 62vw; }
-          .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+          .section { --card-w: 150px; }
+          .track { gap: 10px; }
+          .grid { gap: 10px; }
           .carousel-btn { display: none; }
           .search-hint { display: none; }
           .nav-title { font-size: 16px; }
@@ -1033,21 +1059,20 @@ export default function App() {
             <Dropdown
               className="topic"
               caption="Topic"
-              value={topicValue}
+              unit="topics"
+              selected={topicValues}
               options={topicOptions}
-              onChange={(v) => {
-                setTopicChoice(v);
-                setChapterChoice('all');
-              }}
+              onChange={setTopicChoices}
             />
 
             <Dropdown
               className="chapter"
               caption="Chapter"
+              unit="chapters"
               align="right"
-              value={chapterValue}
+              selected={chapterValues}
               options={chapterOptions}
-              onChange={setChapterChoice}
+              onChange={setChapterChoices}
             />
           </div>
 

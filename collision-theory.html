@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
     <title>Collision Theory Lab v30 - Optimized Spacing</title>
     <style>
         :root {
@@ -11,26 +12,46 @@
             --col-D: #f59e0b; --col-E: #fb923c; --col-X: #a855f7; --col-AX: #f472b6;
         }
         * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { margin: 0; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
-        .header { height: 75px; background: var(--panel); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 2px solid #334155; }
-        
-        .equation-box { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 8px; border: 1px solid #334155; }
-        .eq-part { display: flex; align-items: center; gap: 4px; font-weight: bold; color: #cbd5e1; font-size: 0.75rem; }
+        /* Landscape / desktop: fixed full-screen layout */
+        body {
+            margin: 0; background: var(--bg); color: var(--text);
+            height: 100vh; height: 100dvh;
+            display: flex; flex-direction: column; overflow: hidden;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            touch-action: manipulation;                 /* no double-tap zoom */
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none; user-select: none;
+        }
+
+        .header {
+            min-height: 75px; background: var(--panel);
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+            gap: 8px 12px; padding: 8px 20px; border-bottom: 2px solid #334155;
+        }
+        .mode-group, .action-group { display: flex; gap: 8px; }
+
+        .equation-box { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 8px; border: 1px solid #334155; }
+        .eq-part { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-weight: bold; color: #cbd5e1; font-size: 0.75rem; }
         .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
         .sq { width: 10px; height: 10px; display: inline-block; border: 1px solid rgba(255,255,255,0.5); }
 
-        .workspace { flex: 1; display: flex; overflow: hidden; }
-        .sim-container { flex: 1.6; position: relative; background: #000; border-right: 2px solid #334155; }
-        .data-container { flex: 1; display: flex; flex-direction: column; background: var(--panel); padding: 15px; gap: 15px; overflow-y: auto; }
+        .workspace { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+        .sim-container { flex: 1.6; min-width: 0; position: relative; background: #000; border-right: 2px solid #334155; }
+        .data-container { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--panel); padding: 15px; gap: 15px; overflow-y: auto; }
 
-        .graph-box { height: 220px; background: #020617; border: 1px solid #475569; border-radius: 8px; position: relative; }
-        .table-box { flex: 1; background: #020617; border-radius: 8px; overflow-y: auto; border: 1px solid #475569; }
+        /* Canvases fill their box; their pixel size is set in JS (with devicePixelRatio) */
+        .sim-container canvas, .graph-box canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+
+        .graph-box { height: 220px; flex: none; background: #020617; border: 1px solid #475569; border-radius: 8px; position: relative; overflow: hidden; }
+        .table-box { flex: 1; min-height: 120px; background: #020617; border-radius: 8px; overflow: auto; border: 1px solid #475569; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        th { background: #334155; padding: 10px; text-align: left; position: sticky; top: 0; }
-        td { padding: 8px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
+        th { background: #334155; padding: 10px; text-align: left; position: sticky; top: 0; white-space: nowrap; }
+        td { padding: 8px; border-bottom: 1px solid #1e293b; color: #cbd5e1; white-space: nowrap; }
 
-        .controls { height: 140px; background: var(--panel); display: flex; align-items: center; justify-content: space-around; padding: 0 20px; border-top: 2px solid #334155; }
+        .controls { min-height: 140px; background: var(--panel); display: flex; align-items: center; justify-content: space-around; padding: 0 20px; border-top: 2px solid #334155; }
         .slider-wrap { width: 18%; text-align: center; }
         .slider-wrap label { display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; }
         input[type=range] { width: 100%; cursor: pointer; accent-color: var(--col-A); }
@@ -40,30 +61,76 @@
         .btn-skip { background: #f59e0b; color: white; }
         .btn-mode { background: #475569; color: white; }
         .btn-mode.active { background: var(--col-A); }
-        .btn-del { background: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 2px 8px; cursor: pointer; }
+        .btn-del { background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+
+        /* Touch screens: bigger tap targets */
+        @media (pointer: coarse) {
+            .btn { min-height: 44px; }
+            .btn-del { padding: 8px 14px; }
+            input[type=range] { height: 34px; }
+        }
+
+        /* Portrait (iPad / phone) or very narrow windows: stack and let the page scroll */
+        @media (orientation: portrait), (max-width: 640px) and (min-height: 600px) {
+            body { height: auto; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; overflow-y: auto; }
+            .workspace { display: contents; }
+
+            .header { order: 1; padding: 10px 12px; }
+            .mode-group, .action-group { flex: 1 1 100%; }
+            .mode-group .btn, .action-group .btn { flex: 1; }
+            .equation-box { order: 3; width: 100%; justify-content: center; }
+
+            .sim-container {
+                order: 2; flex: none; border-right: 0; border-bottom: 2px solid #334155;
+                height: clamp(260px, 42vh, 480px);
+                height: clamp(260px, 42svh, 480px);   /* small-viewport units: stable while the Safari toolbar moves */
+            }
+            .controls {
+                order: 3; min-height: 0; padding: 12px 16px;
+                display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; align-items: end;
+            }
+            .slider-wrap { width: 100%; }
+            .data-container { order: 4; flex: none; overflow: visible; padding: 12px; gap: 12px; }
+            .graph-box { height: 200px; }
+            .table-box { flex: none; max-height: 260px; }
+        }
+
+        /* Phone in landscape: very little height, so compact everything */
+        @media (orientation: landscape) and (max-height: 520px) {
+            .header { min-height: 0; padding: 4px 12px; gap: 6px 10px; }
+            .btn { padding: 6px 10px; font-size: 0.7rem; min-height: 34px; }
+            .equation-box { padding: 4px 8px; }
+            .controls { min-height: 0; padding: 6px 12px; gap: 10px; }
+            .slider-wrap label { margin-bottom: 2px; font-size: 0.65rem; }
+            input[type=range] { height: 24px; }
+            .data-container { padding: 8px; gap: 8px; }
+            .graph-box { height: 110px; }
+            .table-box { min-height: 80px; }
+            th, td { padding: 5px 6px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div style="display:flex; gap:8px;">
+    <div class="mode-group">
         <button id="btn-gas" class="btn btn-mode active" onclick="setMode('gas')">Gas Phase</button>
         <button id="btn-solid" class="btn btn-mode" onclick="setMode('solid')">Solid Surface</button>
     </div>
     <div id="equation-display" class="equation-box"></div>
-    <div style="display:flex; gap:8px;">
+    <div class="action-group">
         <button class="btn btn-run" onclick="startTrial()">▶ RUN TRIAL</button>
         <button class="btn btn-skip" onclick="fastForward()">⚡ SKIP</button>
-        <button class="btn" style="background:#64748b" onclick="clearAll()">CLEAR</button>
+        <button class="btn" style="background:#64748b; color:white" onclick="clearAll()">CLEAR</button>
     </div>
 </div>
 
 <div class="workspace">
-    <div class="sim-container">
+    <div class="sim-container" id="sim-box">
         <canvas id="simCanvas"></canvas>
     </div>
     <div class="data-container">
-        <div class="graph-box"><canvas id="graphCanvas"></canvas></div>
+        <div class="graph-box" id="graph-box"><canvas id="graphCanvas"></canvas></div>
         <div class="table-box">
             <table>
                 <thead><tr><th>Trial</th><th>T</th><th>C</th><th>V</th><th>SA</th><th>Init. Rate</th><th></th></tr></thead>
@@ -85,6 +152,9 @@
 const S_CVS = document.getElementById('simCanvas'), S_CTX = S_CVS.getContext('2d');
 const G_CVS = document.getElementById('graphCanvas'), G_CTX = G_CVS.getContext('2d');
 
+// Logical (CSS pixel) canvas sizes. The real canvas is scaled by devicePixelRatio for sharp drawing.
+let SW = 0, SH = 0, GW = 0, GH = 0;
+
 const STATE = {
     active: false, mode: 'gas', cat: false,
     temp: 40, conc: 60, vol: 100, sa: 1,
@@ -94,20 +164,21 @@ const STATE = {
 
 class Ripple {
     constructor(x, y, color) { this.x = x; this.y = y; this.r = 4; this.opacity = 0.8; this.color = color; }
+    update() { this.r += 1.5; this.opacity -= 0.05; }
     draw() {
+        const a = Math.max(0, Math.min(255, Math.floor(this.opacity * 255)));
         S_CTX.beginPath(); S_CTX.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        S_CTX.strokeStyle = this.color + Math.floor(this.opacity * 255).toString(16).padStart(2, '0');
+        S_CTX.strokeStyle = this.color + a.toString(16).padStart(2, '0');
         S_CTX.lineWidth = 1.5; S_CTX.stroke();
-        this.r += 1.5; this.opacity -= 0.05;
     }
 }
 
 class Particle {
     constructor(type, radius = 5) { this.type = type; this.r = radius; this.spawn(); this.initVel(); }
     spawn() {
-        const w = S_CVS.width * (STATE.vol/100);
-        this.x = Math.random() * (w - 20) + 10;
-        this.y = Math.random() * (S_CVS.height - 20) + 10;
+        const w = SW * (STATE.vol/100);
+        this.x = Math.random() * Math.max(1, w - 20) + 10;
+        this.y = Math.random() * Math.max(1, SH - 20) + 10;
     }
     initVel() {
         const speed = (STATE.temp / 10) * 1.4 * (0.8 + Math.random() * 0.4);
@@ -116,11 +187,11 @@ class Particle {
     }
     update() {
         this.x += this.vx; this.y += this.vy;
-        const w = S_CVS.width * (STATE.vol/100);
+        const w = SW * (STATE.vol/100);
         if (this.x < this.r) { this.x = this.r; this.vx *= -1; }
         if (this.x > w - this.r) { this.x = w - this.r; this.vx *= -1; }
         if (this.y < this.r) { this.y = this.r; this.vy *= -1; }
-        if (this.y > S_CVS.height - this.r) { this.y = S_CVS.height - this.r; this.vy *= -1; }
+        if (this.y > SH - this.r) { this.y = SH - this.r; this.vy *= -1; }
 
         STATE.obstacles.forEach(o => {
             if (this.x + this.r > o.x && this.x - this.r < o.x + o.w && this.y + this.r > o.y && this.y - this.r < o.y + o.h) {
@@ -211,7 +282,7 @@ function fastForward() {
     tr.done = true; STATE.active = false;
 }
 
-function clearAll() { STATE.active = false; STATE.trials = []; STATE.ripples = []; refresh(); G_CTX.clearRect(0,0, G_CVS.width, G_CVS.height); updateTable(); }
+function clearAll() { STATE.active = false; STATE.trials = []; STATE.ripples = []; refresh(); G_CTX.clearRect(0,0, GW, GH); updateTable(); }
 
 function updateTable() {
     document.getElementById('trial-rows').innerHTML = STATE.trials.map((t, i) => `
@@ -220,19 +291,11 @@ function updateTable() {
     `).join('');
 }
 
-function mainLoop() {
-    S_CTX.fillStyle = '#000'; S_CTX.fillRect(0,0, S_CVS.width, S_CVS.height);
-    const w = S_CVS.width * (STATE.vol/100);
-    S_CTX.strokeStyle = '#334155'; S_CTX.strokeRect(0,0, w, S_CVS.height);
-
-    STATE.obstacles.forEach(o => { 
-        S_CTX.fillStyle = STATE.colors.D; S_CTX.fillRect(o.x, o.y, o.w, o.h); 
-        S_CTX.strokeStyle="rgba(255,255,255,0.4)"; S_CTX.strokeRect(o.x,o.y,o.w,o.h); 
-    });
-    
-    STATE.particles.forEach(p => { if(STATE.active) p.update(); S_CTX.fillStyle = STATE.colors[p.type]; S_CTX.beginPath(); S_CTX.arc(p.x, p.y, p.r, 0, Math.PI*2); S_CTX.fill(); });
+/* ───────── Simulation step (runs at a fixed 60 steps/second, even on 120 Hz iPad Pro screens) ───────── */
+function stepSim() {
+    if (STATE.active) STATE.particles.forEach(p => p.update());
+    STATE.ripples.forEach(r => r.update());
     STATE.ripples = STATE.ripples.filter(r => r.opacity > 0);
-    STATE.ripples.forEach(r => r.draw());
 
     if (STATE.active) {
         resolveCollisions();
@@ -245,9 +308,23 @@ function mainLoop() {
             if (elapsed > 10 || remaining <= 0) { STATE.active = false; tr.done = true; }
         }
     }
+}
 
-    G_CTX.clearRect(0,0, G_CVS.width, G_CVS.height);
-    const pad = 10, gh = G_CVS.height - 20, gw = G_CVS.width, MAX_C = 150;
+function draw() {
+    S_CTX.fillStyle = '#000'; S_CTX.fillRect(0,0, SW, SH);
+    const w = SW * (STATE.vol/100);
+    S_CTX.strokeStyle = '#334155'; S_CTX.strokeRect(0,0, w, SH);
+
+    STATE.obstacles.forEach(o => { 
+        S_CTX.fillStyle = STATE.colors.D; S_CTX.fillRect(o.x, o.y, o.w, o.h); 
+        S_CTX.strokeStyle="rgba(255,255,255,0.4)"; S_CTX.strokeRect(o.x,o.y,o.w,o.h); 
+    });
+    
+    STATE.particles.forEach(p => { S_CTX.fillStyle = STATE.colors[p.type]; S_CTX.beginPath(); S_CTX.arc(p.x, p.y, p.r, 0, Math.PI*2); S_CTX.fill(); });
+    STATE.ripples.forEach(r => r.draw());
+
+    G_CTX.clearRect(0,0, GW, GH);
+    const pad = 10, gh = GH - 20, gw = GW, MAX_C = 150;
     STATE.trials.forEach(t => {
         G_CTX.beginPath(); G_CTX.strokeStyle = t.color; G_CTX.lineWidth = 2;
         t.data.forEach((d, i) => {
@@ -256,19 +333,49 @@ function mainLoop() {
         });
         G_CTX.stroke();
     });
+}
+
+const STEP_MS = 1000 / 60;
+let lastT = 0, acc = 0;
+function mainLoop(now) {
+    if (!lastT) lastT = now;
+    acc += Math.min(now - lastT, 100);   // cap so a background tab doesn't cause a burst of steps
+    lastT = now;
+    let n = 0;
+    while (acc >= STEP_MS && n < 4) { stepSim(); acc -= STEP_MS; n++; }
+    if (n === 4) acc = 0;
+    draw();
     requestAnimationFrame(mainLoop);
 }
 
-function handleResize() {
-    S_CVS.width = S_CVS.parentElement.clientWidth; S_CVS.height = S_CVS.parentElement.clientHeight;
-    G_CVS.width = G_CVS.parentElement.clientWidth; G_CVS.height = G_CVS.parentElement.clientHeight;
-    refresh();
+/* ───────── Sizing: follows the layout (rotation, split view, browser toolbar) ───────── */
+function setCanvas(cvs, ctx, w, h) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cvs.width = Math.max(1, Math.round(w * dpr));
+    cvs.height = Math.max(1, Math.round(h * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-window.onresize = handleResize;
+
+function handleResize() {
+    const sb = S_CVS.parentElement, gb = G_CVS.parentElement;
+    const sw = sb.clientWidth, sh = sb.clientHeight, gw = gb.clientWidth, gh = gb.clientHeight;
+    if (gw !== GW || gh !== GH) { GW = gw; GH = gh; setCanvas(G_CVS, G_CTX, GW, GH); }
+    // Only restart the particles when the simulation box really changed size
+    if (sw !== SW || sh !== SH) { SW = sw; SH = sh; setCanvas(S_CVS, S_CTX, SW, SH); refresh(); }
+}
+
+if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(handleResize);
+    ro.observe(document.getElementById('sim-box'));
+    ro.observe(document.getElementById('graph-box'));
+} else {
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => setTimeout(handleResize, 200));
+}
 
 function refresh() {
     STATE.particles = []; STATE.obstacles = []; STATE.ripples = [];
-    const w = S_CVS.width * (STATE.vol/100), h = S_CVS.height;
+    const w = SW * (STATE.vol/100), h = SH;
     if (STATE.mode === 'gas') {
         for(let i=0; i<STATE.conc; i++) STATE.particles.push(new Particle('A'));
         if(STATE.cat) for(let i=0; i<20; i++) STATE.particles.push(new Particle('X', 9));
@@ -276,12 +383,14 @@ function refresh() {
         const n = parseInt(STATE.sa); 
         const side = Math.sqrt(3600 / n); 
         const cols = Math.ceil(Math.sqrt(n));
-        // INCREASED SPACING MULTIPLIER: Spreads blocks across the canvas
-        const spacing = side + (Math.max(w, h) / (cols + 1.5)); 
+        const rows = Math.ceil(n / cols);
+        // Spread the blocks out, but never let the grid be bigger than the box (small screens)
+        let spacing = side + (Math.max(w, h) / (cols + 1.5));
+        spacing = Math.max(side + 2, Math.min(spacing, w / cols, h / rows));
         
         for(let i=0; i<n; i++) {
             const startX = (w - (cols * spacing)) / 2;
-            const startY = (h - (Math.ceil(n/cols) * spacing)) / 2;
+            const startY = (h - (rows * spacing)) / 2;
             STATE.obstacles.push({ 
                 x: startX + (i % cols) * spacing + (spacing - side) / 2, 
                 y: startY + Math.floor(i / cols) * spacing + (spacing - side) / 2, 
@@ -317,7 +426,8 @@ function deleteTrial(id) { STATE.trials = STATE.trials.filter(t => t.id !== id);
     document.getElementById('sl-'+id).oninput = (e) => { STATE[id] = e.target.value; document.getElementById('val-'+id).innerText = e.target.value; refresh(); };
 });
 
-setTimeout(handleResize, 100); mainLoop();
+handleResize();
+requestAnimationFrame(mainLoop);
 </script>
 </body>
 </html>

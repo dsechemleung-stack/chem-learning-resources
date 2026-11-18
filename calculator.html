@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CHEM IS TRY</title>
+<title>CHEM-IS-TRY Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#e9eaed;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -12,6 +12,8 @@
 html,body{margin:0;min-height:100%}
 body{background:var(--bg);display:flex;justify-content:center;padding:16px;font-family:Arial,Helvetica,sans-serif}
 .calc{container-type:inline-size;width:min(380px,92vw);padding:3.2cqw;border-radius:11cqw 11cqw 9cqw 9cqw;background:linear-gradient(#3b3d56,#26283a);box-shadow:0 2cqw 5cqw #0006;user-select:none}
+/* Stop iPad/iPhone Safari from zooming when a button is double-tapped */
+.calc,.calc *{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
 .face{border-radius:9cqw 9cqw 7cqw 7cqw;background:linear-gradient(#d9dbde,#bfc2c6 60%,#b3b6bb);padding:4cqw 6cqw 6cqw;position:relative}
 .top{display:flex;justify-content:space-between;align-items:flex-start;height:12cqw}
 .brand{font:bold 7.5cqw Arial;letter-spacing:.3cqw;color:#222;margin:0 0 0 7cqw}
