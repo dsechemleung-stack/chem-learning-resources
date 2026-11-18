@@ -20,7 +20,8 @@ export default defineConfig({
         metalsQuiz: 'metals-quiz.html',
         calculator: 'calculator.html',
         ecologicalPyramids: 'ecological-pyramid.html',
-        carbonCycle: 'carbon-cycle.html'
+        carbonCycle: 'carbon-cycle.html',
+        mole: 'mole.html'
       },
     },
   },
