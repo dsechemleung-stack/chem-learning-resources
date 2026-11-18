@@ -19,6 +19,22 @@ export const PAGES_CONFIG = [
     topic: 'MW1',
     image: 'chemical-bonding-thumb.png',
   },
+  {
+    file: 'ecological-pyramid.html',
+    level: 'F3',
+    title: 'Ecological Pyramids',
+    subtitle: 'Energy flow across a food chain',
+    topic: 'Ecology-BIO',
+    image: 'ecological-pyramid.png',
+  },
+  {
+    file: 'carbon-cycle.html',
+    level: 'F3',
+    title: 'Carbon cycle',
+    subtitle: 'Material cycling',
+    topic: 'Ecology-BIO',
+    image: 'carbon-cycle.png',
+  },
 
   // ── F4 PAGES ──
   {
