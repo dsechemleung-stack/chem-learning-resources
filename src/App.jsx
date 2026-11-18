@@ -27,6 +27,19 @@ const topicId = (topic) => `topic-${String(topic).replace(/[^a-zA-Z0-9]+/g, '-')
 
 const appWord = (n) => (n === 1 ? 'app' : 'apps');
 
+// Download + decode every thumbnail once, so switching level shows icons instantly
+const preloaded = new Set();
+const preloadImages = (pages) => {
+  pages.forEach((p) => {
+    if (!p.image || preloaded.has(p.image)) return;
+    preloaded.add(p.image);
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = assetUrl(p.image);
+    if (img.decode) img.decode().catch(() => {});
+  });
+};
+
 /* ───────────── small inline icons ───────────── */
 const sv = {
   viewBox: '0 0 24 24',
@@ -216,7 +229,8 @@ function AppCard({ app, topic, showLevel }) {
           <img
             src={assetUrl(app.image)}
             alt=""
-            loading="lazy"
+            loading="eager"
+            decoding="async"
             draggable={false}
             onError={() => setImgFailed(true)}
           />
@@ -415,6 +429,13 @@ export default function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Preload thumbnails: the opening level first, then all the others
+  React.useEffect(() => {
+    const first = PAGES_CONFIG.filter((p) => DEFAULT_LEVEL === 'all' || p.level === DEFAULT_LEVEL);
+    preloadImages(first);
+    preloadImages(PAGES_CONFIG);
   }, []);
 
   const levelPages = React.useMemo(
