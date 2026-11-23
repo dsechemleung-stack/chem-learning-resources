@@ -50,7 +50,7 @@
   {
     "file": "ion-forge.html",
     "level": "F4",
-    "title": "IonForge",
+    "title": "Ion-Forge",
     "subtitle": "Chemistry Ion Trainer",
     "topic": "MW1",
     "image": "ion-forge-thumb.png",
@@ -175,6 +175,18 @@
     "topic": "Rate",
     "image": "rate-reaction-with-syringe-thumb.png",
     "chapter": "36",
+    "icon": "",
+    "color": "",
+    "topic_label": ""
+  },
+  {
+    "file": "energy-flow.html",
+    "level": "F3",
+    "title": "Energy flow across a food chain",
+    "subtitle": "How does energy flow?",
+    "topic": "Ecology-BIO",
+    "image": "energy-flow.html",
+    "chapter": "",
     "icon": "",
     "color": "",
     "topic_label": ""
